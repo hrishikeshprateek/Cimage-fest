@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -16,6 +16,12 @@ export const metadata: Metadata = {
   title: "CIMAGE Fest 2027 — Coming Soon",
   description:
     "Something big is on the way. CIMAGE's next annual fest, 2027 edition. Coming soon.",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#05010f",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({

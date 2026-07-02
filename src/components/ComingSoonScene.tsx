@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useRef } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   Center,
   Float,
@@ -17,6 +17,10 @@ const FONT_URL = "/fonts/helvetiker_bold.typeface.json";
 
 function Headline() {
   const group = useRef<Group>(null);
+  // World-space width of the visible area at z=0. On a portrait phone this is
+  // small, so scale the headline down until "COMING" fits with margin to spare.
+  const viewportWidth = useThree((state) => state.viewport.width);
+  const scale = Math.min(1, viewportWidth / 6.5);
 
   useFrame((state) => {
     if (!group.current) return;
@@ -27,7 +31,7 @@ function Headline() {
   });
 
   return (
-    <group ref={group}>
+    <group ref={group} scale={scale}>
       <Float speed={1.6} rotationIntensity={0.35} floatIntensity={0.9}>
         <Center position={[0, 0.75, 0]}>
           <Text3D
@@ -102,11 +106,16 @@ function Knot() {
 }
 
 export default function ComingSoonScene() {
+  // This component is client-only (dynamic import, ssr:false), so `window`
+  // is always available here.
+  const isMobile = window.innerWidth < 640;
+
   return (
     <Canvas
-      dpr={[1, 2]}
+      // Cap pixel ratio lower on phones — retina * heavy shaders tanks the FPS.
+      dpr={isMobile ? [1, 1.5] : [1, 2]}
       camera={{ position: [0, 0, 7], fov: 45 }}
-      gl={{ antialias: true }}
+      gl={{ antialias: true, powerPreference: "high-performance" }}
     >
       <color attach="background" args={["#05010f"]} />
       <fog attach="fog" args={["#05010f", 8, 20]} />
@@ -119,8 +128,21 @@ export default function ComingSoonScene() {
       <Suspense fallback={null}>
         <Headline />
         <Knot />
-        <Sparkles count={120} scale={12} size={2} speed={0.3} color="#c4b5fd" />
-        <Stars radius={60} depth={40} count={2500} factor={4} fade speed={1} />
+        <Sparkles
+          count={isMobile ? 50 : 120}
+          scale={12}
+          size={2}
+          speed={0.3}
+          color="#c4b5fd"
+        />
+        <Stars
+          radius={60}
+          depth={40}
+          count={isMobile ? 1000 : 2500}
+          factor={4}
+          fade
+          speed={1}
+        />
         <Environment preset="night" />
       </Suspense>
 

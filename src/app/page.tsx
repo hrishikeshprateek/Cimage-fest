@@ -37,12 +37,12 @@ export default function Home() {
         </header>
 
         <footer className="flex flex-col items-center gap-2 text-center">
-          <p className="font-mono text-xs uppercase tracking-[0.4em] text-white/50">
+          <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.4em]">
             The next chapter is loading
           </p>
           <div
             aria-hidden
-            className="h-px w-40 bg-gradient-to-r from-transparent via-violet-400/60 to-transparent"
+            className="h-px w-32 bg-gradient-to-r from-transparent via-violet-400/60 to-transparent sm:w-40"
           />
         </footer>
       </div>
