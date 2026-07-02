@@ -13,9 +13,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CIMAGE Fest 2027 — Coming Soon",
-  description:
-    "Something big is on the way. CIMAGE's next annual fest, 2027 edition. Coming soon.",
+  title: "CIMAGE Fest — Coming Soon",
+  description: "Something big is on the way. CIMAGE Fest. Coming soon.",
+  openGraph: {
+    title: "CIMAGE Fest",
+    description: "Something big is on the way. CIMAGE Fest. Coming soon.",
+    siteName: "CIMAGE Fest",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CIMAGE Fest",
+    description: "Something big is on the way. CIMAGE Fest. Coming soon.",
+  },
 };
 
 export const viewport: Viewport = {
