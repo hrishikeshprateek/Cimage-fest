@@ -10,7 +10,6 @@ import {
   Sparkles,
   Stars,
   Text3D,
-  MeshTransmissionMaterial,
 } from "@react-three/drei";
 import type { Group, Mesh } from "three";
 
@@ -42,14 +41,12 @@ function Headline() {
             curveSegments={12}
           >
             COMING
-            <MeshTransmissionMaterial
-              thickness={0.6}
-              roughness={0.15}
-              transmission={1}
-              ior={1.4}
-              chromaticAberration={0.06}
-              backside
-              color="#c4b5fd"
+            <meshStandardMaterial
+              color="#f5f3ff"
+              emissive="#8b5cf6"
+              emissiveIntensity={0.55}
+              metalness={0.35}
+              roughness={0.25}
             />
           </Text3D>
         </Center>
@@ -66,14 +63,12 @@ function Headline() {
             curveSegments={12}
           >
             SOON
-            <MeshTransmissionMaterial
-              thickness={0.6}
-              roughness={0.15}
-              transmission={1}
-              ior={1.4}
-              chromaticAberration={0.06}
-              backside
-              color="#7dd3fc"
+            <meshStandardMaterial
+              color="#ecfeff"
+              emissive="#22d3ee"
+              emissiveIntensity={0.55}
+              metalness={0.35}
+              roughness={0.25}
             />
           </Text3D>
         </Center>

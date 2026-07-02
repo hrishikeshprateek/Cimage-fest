@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import dynamic from "next/dynamic";
 
 // WebGL can't render on the server, so load the scene client-side only.
@@ -22,10 +23,17 @@ export default function Home() {
 
       {/* Overlay branding — non-interactive so the canvas stays draggable */}
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-6 sm:p-10">
-        <header className="flex items-center justify-between">
-          <span className="font-mono text-sm font-semibold tracking-[0.35em] text-violet-200">
-            CIMAGE
-          </span>
+        <header className="flex items-center justify-between gap-4">
+          <div className="rounded-xl bg-white/95 px-3 py-2 shadow-lg shadow-black/30 ring-1 ring-white/20">
+            <Image
+              src="/logo.webp"
+              alt="CIMAGE Group of Institutions"
+              width={648}
+              height={186}
+              priority
+              className="h-8 w-auto sm:h-10"
+            />
+          </div>
           <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 font-mono text-xs tracking-widest text-white/70 backdrop-blur">
             FEST&nbsp;2027
           </span>
