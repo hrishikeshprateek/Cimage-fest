@@ -1,29 +1,51 @@
-import Navbar from "@/components/Navbar";
-import Hero from "@/components/hero/Hero";
-import About from "@/components/sections/About";
-import Events from "@/components/sections/Events";
-import Speakers from "@/components/sections/Speakers";
-import Sponsors from "@/components/sections/Sponsors";
-import Gallery from "@/components/sections/Gallery";
-import Register from "@/components/sections/Register";
-import Faq from "@/components/sections/Faq";
-import Footer from "@/components/Footer";
+"use client";
+
+import Image from "next/image";
+import dynamic from "next/dynamic";
+
+// WebGL can't render on the server, so load the scene client-side only.
+const ComingSoonScene = dynamic(() => import("@/components/ComingSoonScene"), {
+  ssr: false,
+  loading: () => (
+    <div className="absolute inset-0 grid place-items-center text-sm tracking-[0.3em] text-violet-300/60">
+      LOADING…
+    </div>
+  ),
+});
 
 export default function Home() {
   return (
-    <>
-      <Navbar />
-      <main>
-        <Hero />
-        <About />
-        <Events />
-        <Speakers />
-        <Sponsors />
-        <Gallery />
-        <Register />
-        <Faq />
-      </main>
-      <Footer />
-    </>
+    <main className="relative h-dvh w-full overflow-hidden bg-[#05010f] text-white">
+      {/* 3D canvas fills the viewport */}
+      <div className="absolute inset-0">
+        <ComingSoonScene />
+      </div>
+
+      {/* Overlay branding — non-interactive so the canvas stays draggable */}
+      <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-6 sm:p-10">
+        <header className="flex items-center">
+          <div className="rounded-xl bg-white/95 px-3 py-2 shadow-lg shadow-black/30 ring-1 ring-white/20">
+            <Image
+              src="/logo.webp"
+              alt="CIMAGE Group of Institutions"
+              width={648}
+              height={186}
+              priority
+              className="h-8 w-auto sm:h-10"
+            />
+          </div>
+        </header>
+
+        <footer className="flex flex-col items-center gap-2 text-center">
+          <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.4em]">
+            The next chapter is loading
+          </p>
+          <div
+            aria-hidden
+            className="h-px w-32 bg-gradient-to-r from-transparent via-violet-400/60 to-transparent sm:w-40"
+          />
+        </footer>
+      </div>
+    </main>
   );
 }

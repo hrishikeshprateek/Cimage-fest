@@ -12,22 +12,19 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const shareDescription =
-  "Bihar's biggest tech, culture & innovation festival — hackathons, robotics, keynote talks and after-dark concerts. March 13–15, 2027.";
-
 export const metadata: Metadata = {
-  title: "CIMAGE Fest — Tech, Culture & Innovation Festival",
-  description: shareDescription,
+  title: "CIMAGE Fest — Coming Soon",
+  description: "Something big is on the way. CIMAGE Fest. Coming soon.",
   openGraph: {
     title: "CIMAGE Fest",
-    description: shareDescription,
+    description: "Something big is on the way. CIMAGE Fest. Coming soon.",
     siteName: "CIMAGE Fest",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "CIMAGE Fest",
-    description: shareDescription,
+    description: "Something big is on the way. CIMAGE Fest. Coming soon.",
   },
 };
 
