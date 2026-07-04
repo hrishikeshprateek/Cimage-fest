@@ -1,50 +1,34 @@
-"use client";
-
-import Image from "next/image";
-import dynamic from "next/dynamic";
-
-// WebGL can't render on the server, so load the scene client-side only.
-const ComingSoonScene = dynamic(() => import("@/components/ComingSoonScene"), {
-  ssr: false,
-  loading: () => (
-    <div className="absolute inset-0 grid place-items-center text-sm tracking-[0.3em] text-violet-300/60">
-      LOADING…
-    </div>
-  ),
-});
+import Loader from "@/components/landing/Loader";
+import CyberCity from "@/components/landing/CyberCity";
+import VideoWall from "@/components/landing/VideoWall";
+import TopBar from "@/components/landing/TopBar";
+import SocialRail from "@/components/landing/SocialRail";
+import FestWordmark from "@/components/landing/FestWordmark";
 
 export default function Home() {
   return (
-    <main className="relative h-dvh w-full overflow-hidden bg-[#05010f] text-white">
-      {/* 3D canvas fills the viewport */}
+    <main
+      id="top"
+      className="relative h-dvh w-full overflow-hidden bg-[#05010f] text-white"
+    >
+      {/* Fancy neon preloader — plays once, then reveals the site */}
+      <Loader />
+
+      {/* Cityscape as a fallback beneath the video wall */}
       <div className="absolute inset-0">
-        <ComingSoonScene />
+        <CyberCity />
       </div>
 
-      {/* Overlay branding — non-interactive so the canvas stays draggable */}
-      <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-6 sm:p-10">
-        <header className="flex items-center">
-          <div className="rounded-xl bg-white/95 px-3 py-2 shadow-lg shadow-black/30 ring-1 ring-white/20">
-            <Image
-              src="/logo.webp"
-              alt="CIMAGE Group of Institutions"
-              width={648}
-              height={186}
-              priority
-              className="h-8 w-auto sm:h-10"
-            />
-          </div>
-        </header>
+      {/* Tiled portrait video wall (LED-stage look) */}
+      <VideoWall />
 
-        <footer className="flex flex-col items-center gap-2 text-center">
-          <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.4em]">
-            The next chapter is loading
-          </p>
-          <div
-            aria-hidden
-            className="h-px w-32 bg-gradient-to-r from-transparent via-violet-400/60 to-transparent sm:w-40"
-          />
-        </footer>
+      {/* Chrome (SideNav is global, in the root layout) */}
+      <TopBar />
+      <SocialRail />
+
+      {/* Centered branding with the fest logo */}
+      <div className="absolute inset-0 z-20 flex items-center justify-center">
+        <FestWordmark />
       </div>
     </main>
   );

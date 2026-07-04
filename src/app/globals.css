@@ -1,26 +1,173 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #05010f;
+  --foreground: #ededf5;
+  --violet: #8b5cf6;
+  --cyan: #22d3ee;
+  --magenta: #e879f9;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-violet: var(--violet);
+  --color-cyan: var(--cyan);
+  --color-magenta: var(--magenta);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Neon gradient text used for the wordmark and accents */
+.text-gradient {
+  background: linear-gradient(90deg, #a78bfa 0%, #22d3ee 50%, #e879f9 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Hide scrollbar on the immersive scroll-snap container */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Subtle grid backdrop for content sections */
+.grid-backdrop {
+  background-image:
+    linear-gradient(rgba(139, 92, 246, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+/* Card entrance — fades/rises on mount (replays via key change) */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-rise {
+  animation: rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Slow pulse for glow accents */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+.animate-glow {
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+
+/* --- Preloader animations --- */
+@keyframes spin-cw {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes spin-ccw {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+.spin-cw {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: spin-cw 3.2s linear infinite;
+}
+.spin-ccw {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: spin-ccw 2.2s linear infinite;
+}
+
+/* Orbiting particle wrapper */
+@keyframes orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-orbit {
+  animation: orbit 1.6s linear infinite;
+}
+
+/* Flicker for the wordmark while loading */
+@keyframes flicker {
+  0%,
+  18%,
+  22%,
+  25%,
+  53%,
+  57%,
+  100% {
+    opacity: 1;
+  }
+  20%,
+  24%,
+  55% {
+    opacity: 0.55;
+  }
+}
+.animate-flicker {
+  animation: flicker 3.5s linear infinite;
+}
+
+/* Breathing pulse for the loader logo */
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(0.96);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+.animate-breathe {
+  animation: breathe 2.4s ease-in-out infinite;
+}
+
+/* Scanning shimmer sweep */
+@keyframes sweep {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(120%);
+  }
+}
+.animate-sweep {
+  animation: sweep 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-glow,
+  .spin-cw,
+  .spin-ccw,
+  .animate-orbit,
+  .animate-flicker,
+  .animate-sweep,
+  .animate-breathe,
+  .animate-rise {
+    animation: none;
+  }
 }
