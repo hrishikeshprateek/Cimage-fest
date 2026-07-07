@@ -10,8 +10,8 @@ export type FestEventInfo = {
   name: string;
   description?: string;
   venue: string;
-  starts_at: string;
-  ends_at: string;
+  starts_at: string | null;
+  ends_at: string | null;
   requires_payment: boolean;
   amount: number | string;
   currency: string;
@@ -96,6 +96,37 @@ export async function getFestEvent(slug: string): Promise<FestEventInfo | null> 
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(await readError(res));
   const json = (await res.json()) as { data: FestEventInfo };
+  return json.data;
+}
+
+// Activity card shown on the website for a fest.
+export type FestActivity = {
+  id: string;
+  register_slug: string; // CTA → POST /api/fest/<register_slug>/register/
+  icon: string;
+  category: string;
+  name: string;
+  description: string;
+  date_label: string;
+  time_label: string;
+  venue: string;
+  team_size: string;
+  prize_pool: string;
+  background_image_url: string; // "" until a banner is uploaded → use a fallback
+  order: number;
+  is_active: boolean;
+};
+
+// GET /api/fest/<fest_slug>/activities/ — active cards for that fest, in `order`.
+export async function getFestActivities(
+  festSlug: string,
+): Promise<FestActivity[]> {
+  const res = await fetch(`${FEST_API_BASE}/${festSlug}/activities/`, {
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error(await readError(res));
+  const json = (await res.json()) as { data: FestActivity[] };
   return json.data;
 }
 

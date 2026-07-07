@@ -9,6 +9,7 @@ import {
   type FestEventInfo,
   type RegisterSuccess,
 } from "@/lib/festApi";
+import { Field, SelectField, FileField, submitCls, TicketCard } from "./form";
 
 type Slug = string;
 
@@ -28,7 +29,18 @@ const EMPTY_FORM = {
   city: "",
 };
 
-export default function GetPassButton({ slug = fest.passSlug }: { slug?: Slug }) {
+const DEFAULT_TRIGGER_CLS =
+  "shrink-0 rounded-md bg-gradient-to-r from-indigo-400 to-violet-400 px-5 py-2 font-mono text-sm font-bold uppercase tracking-[0.15em] text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-105";
+
+export default function GetPassButton({
+  slug = fest.passSlug,
+  label = "Get Pass",
+  className = DEFAULT_TRIGGER_CLS,
+}: {
+  slug?: Slug;
+  label?: string;
+  className?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [phase, setPhase] = useState<Phase>({ kind: "loading" });
   const [form, setForm] = useState(EMPTY_FORM);
@@ -125,17 +137,13 @@ export default function GetPassButton({ slug = fest.passSlug }: { slug?: Slug })
 
   return (
     <>
-      <button
-        type="button"
-        onClick={openDialog}
-        className="shrink-0 rounded-md bg-gradient-to-r from-violet-600 to-violet-500 px-5 py-2 font-mono text-sm font-bold uppercase tracking-[0.15em] text-white shadow-lg shadow-violet-600/40 transition-transform hover:scale-105"
-      >
-        Get Pass
+      <button type="button" onClick={openDialog} className={className}>
+        {label}
       </button>
 
       {open && (
         <div
-          className="fixed inset-0 z-[80] flex items-center justify-center p-6"
+          className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto p-6 py-10"
           role="dialog"
           aria-modal="true"
           aria-label="Register for CIMAGE Fest"
@@ -145,262 +153,146 @@ export default function GetPassButton({ slug = fest.passSlug }: { slug?: Slug })
             type="button"
             aria-label="Close"
             onClick={close}
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/75 backdrop-blur-sm"
           />
 
-          {/* Card */}
-          <div className="animate-rise relative max-h-[90vh] w-full max-w-sm overflow-y-auto rounded-2xl border border-white/15 bg-[#0b0518]/95 p-8 text-center shadow-2xl">
-            <div className="pointer-events-none absolute -top-16 left-1/2 h-40 w-40 -translate-x-1/2 animate-glow rounded-full bg-violet-600/40 blur-3xl" />
+          <div className="animate-rise relative my-auto">
+            {phase.kind === "loading" && (
+              <TicketCard onClose={close} title="Loading…">
+                <p className="text-center text-sm text-white/60">
+                  Fetching registration details.
+                </p>
+              </TicketCard>
+            )}
 
-            <button
-              type="button"
-              aria-label="Close"
-              onClick={close}
-              className="absolute right-4 top-4 z-10 text-white/50 transition-colors hover:text-white"
-            >
-              ✕
-            </button>
+            {phase.kind === "closed" && (
+              <TicketCard onClose={close} title="Registration Opens Soon">
+                <p className="text-center text-sm leading-relaxed text-white/65">
+                  Passes for CIMAGE Fest aren&apos;t live just yet. Check back
+                  shortly — this is where you&apos;ll grab yours.
+                </p>
+                <button
+                  type="button"
+                  onClick={close}
+                  className={`mt-6 ${submitCls}`}
+                >
+                  Got it
+                </button>
+              </TicketCard>
+            )}
 
-            <div className="relative">
-              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-cyan/30 bg-cyan/10 text-2xl">
-                🎟️
-              </div>
-
-              {phase.kind === "loading" && (
-                <>
-                  <h2 className="text-xl font-black tracking-tight text-white">
-                    Loading…
-                  </h2>
-                  <p className="mt-3 text-sm text-white/60">
-                    Fetching registration details.
-                  </p>
-                </>
-              )}
-
-              {phase.kind === "closed" && (
-                <>
-                  <h2 className="text-2xl font-black tracking-tight">
-                    <span className="text-gradient">
-                      Registration Opens Soon
+            {phase.kind === "form" && (
+              <TicketCard
+                onClose={close}
+                title="Claim Your Pass"
+                subtitle={
+                  <div className="inline-flex items-center gap-2 rounded-md border border-white/10 bg-black/25 px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-white/60">
+                    <span className="truncate">{phase.event.name}</span>
+                    <span className="text-white/25">·</span>
+                    <span className="truncate text-white/45">
+                      {phase.event.venue}
                     </span>
-                  </h2>
-                  <p className="mt-3 text-sm leading-relaxed text-white/65">
-                    Passes for CIMAGE Fest aren&apos;t live just yet. Check back
-                    shortly — this is where you&apos;ll grab yours.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={close}
-                    className="mt-6 w-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-500 py-3 font-semibold text-white transition-transform hover:scale-[1.02]"
-                  >
-                    Got it
-                  </button>
-                </>
-              )}
-
-              {phase.kind === "form" && (
-                <>
-                  <h2 className="text-2xl font-black tracking-tight">
-                    <span className="text-gradient">{phase.event.name}</span>
-                  </h2>
-                  <p className="mt-2 text-xs uppercase tracking-[0.15em] text-white/55">
-                    {phase.event.venue}
                     {phase.event.requires_payment && (
                       <>
-                        {" · "}
-                        {phase.event.currency} {phase.event.amount}
+                        <span className="text-white/25">·</span>
+                        <span className="text-white/70">
+                          {phase.event.currency} {phase.event.amount}
+                        </span>
                       </>
                     )}
-                  </p>
+                  </div>
+                }
+              >
+                <form onSubmit={submit} className="space-y-3.5 text-left">
+                  <Field label="Full name" value={form.name} onChange={setField("name")} autoComplete="name" required />
+                  <Field label="Phone" value={form.phone} onChange={setField("phone")} type="tel" inputMode="numeric" autoComplete="tel" required />
+                  <Field label="Email" value={form.email} onChange={setField("email")} type="email" autoComplete="email" />
 
-                  <form onSubmit={submit} className="mt-5 space-y-3 text-left">
-                    <Field
-                      label="Full name *"
-                      value={form.name}
-                      onChange={setField("name")}
-                      autoComplete="name"
-                      required
-                    />
-                    <Field
-                      label="Phone *"
-                      value={form.phone}
-                      onChange={setField("phone")}
-                      type="tel"
-                      inputMode="numeric"
-                      autoComplete="tel"
-                      required
-                    />
-                    <Field
-                      label="Email"
-                      value={form.email}
-                      onChange={setField("email")}
-                      type="email"
-                      autoComplete="email"
-                    />
-                    {/* Education board dropdown */}
-                    <label className="block">
-                      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.15em] text-white/50">
-                        Board
-                      </span>
-                      <select
-                        value={form.board}
-                        onChange={(e) => setField("board")(e.target.value)}
-                        className="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-cyan/60"
-                      >
-                        <option value="" className="bg-[#0b0518]">
-                          Select board (optional)
-                        </option>
-                        {BOARD_OPTIONS.map((b) => (
-                          <option
-                            key={b.value}
-                            value={b.value}
-                            className="bg-[#0b0518]"
-                          >
-                            {b.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                  <SelectField label="Board" value={form.board} onChange={setField("board")}>
+                    <option value="" className="bg-[#0e0a1a]">Select board (optional)</option>
+                    {BOARD_OPTIONS.map((b) => (
+                      <option key={b.value} value={b.value} className="bg-[#0e0a1a]">
+                        {b.label}
+                      </option>
+                    ))}
+                  </SelectField>
 
-                    <div className="flex gap-3">
-                      <Field
-                        label="Course"
-                        value={form.course}
-                        onChange={setField("course")}
-                      />
-                      <Field
-                        label="City"
-                        value={form.city}
-                        onChange={setField("city")}
-                      />
-                    </div>
-                    <Field
-                      label="School / College"
-                      value={form.school_name}
-                      onChange={setField("school_name")}
-                    />
+                  <div className="flex gap-3">
+                    <Field label="Course" value={form.course} onChange={setField("course")} />
+                    <Field label="City" value={form.city} onChange={setField("city")} />
+                  </div>
+                  <Field label="School / College" value={form.school_name} onChange={setField("school_name")} />
 
-                    {/* ID card upload (optional) */}
-                    <label className="block">
-                      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.15em] text-white/50">
-                        ID Card (jpg / png / pdf)
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,application/pdf"
-                        onChange={(e) => setIdCard(e.target.files?.[0] ?? null)}
-                        className="w-full rounded-lg border border-white/15 bg-white/5 text-sm text-white/80 outline-none transition-colors file:mr-3 file:cursor-pointer file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-wide file:text-cyan focus:border-cyan/60"
-                      />
-                      {idCard && (
-                        <span className="mt-1 block truncate text-[11px] text-white/50">
-                          {idCard.name}
-                        </span>
-                      )}
-                    </label>
+                  <FileField
+                    label="ID Card"
+                    cta="Upload ID card"
+                    accept="image/jpeg,image/png,application/pdf"
+                    file={idCard}
+                    onFile={setIdCard}
+                  />
 
-                    {error && (
-                      <p className="text-xs font-medium text-rose-400">
-                        {error}
-                      </p>
-                    )}
-
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className="mt-2 w-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-500 py-3 font-semibold text-white transition-transform hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {submitting
-                        ? "Please wait…"
-                        : phase.event.requires_payment
-                          ? "Proceed to Payment"
-                          : "Get My Pass"}
-                    </button>
-                  </form>
-
-                  {phase.event.requires_payment && (
-                    <a
-                      href="/pass"
-                      className="mt-4 block text-xs font-medium text-white/45 transition-colors hover:text-cyan"
-                    >
-                      Already registered? Complete payment →
-                    </a>
+                  {error && (
+                    <p className="rounded-md border border-rose-500/25 bg-rose-500/10 px-3 py-2 text-xs font-medium text-rose-300">
+                      {error}
+                    </p>
                   )}
-                </>
-              )}
 
-              {phase.kind === "done" && (
-                <>
-                  <h2 className="text-2xl font-black tracking-tight">
-                    <span className="text-gradient">You&apos;re In!</span>
-                  </h2>
-                  <p className="mt-3 text-sm text-white/65">
+                  <button type="submit" disabled={submitting} className={`mt-2 ${submitCls}`}>
+                    {submitting
+                      ? "Please wait…"
+                      : phase.event.requires_payment
+                        ? "Proceed to Payment"
+                        : "Get My Pass"}
+                  </button>
+                </form>
+
+                {phase.event.requires_payment && (
+                  <a
+                    href="/pass"
+                    className="mt-4 block text-center text-xs font-medium text-white/45 transition-colors hover:text-cyan"
+                  >
+                    Already registered? Complete payment →
+                  </a>
+                )}
+              </TicketCard>
+            )}
+
+            {phase.kind === "done" && (
+              <TicketCard onClose={close} title="You're In!">
+                <div className="text-center">
+                  <p className="text-sm text-white/65">
                     Your pass has been {phase.pass.status}. Save it — you&apos;ll
                     need the QR at the gate.
                   </p>
-                  <div className="mt-4 rounded-xl border border-cyan/25 bg-cyan/5 px-4 py-3">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/50">
+                  <div className="mt-4 flex items-center justify-between rounded-lg border border-white/10 bg-black/25 px-4 py-3 text-left">
+                    <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/45">
                       Pass Code
-                    </p>
-                    <p className="font-mono text-lg font-bold text-cyan">
+                    </span>
+                    <span className="font-mono text-base font-bold tracking-wide text-white">
                       {phase.pass.code}
-                    </p>
+                    </span>
                   </div>
                   <a
                     href={phase.pass.s3_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-5 block w-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-500 py-3 font-semibold text-white transition-transform hover:scale-[1.02]"
+                    className={`mt-5 ${submitCls}`}
                   >
                     Download Pass (PDF)
                   </a>
                   <button
                     type="button"
                     onClick={close}
-                    className="mt-3 w-full rounded-full border border-white/15 py-2.5 text-sm font-semibold text-white/80 transition-colors hover:text-white"
+                    className="mt-3 w-full rounded-lg border border-white/15 py-2.5 text-sm font-semibold text-white/80 transition-colors hover:text-white"
                   >
                     Close
                   </button>
-                </>
-              )}
-            </div>
+                </div>
+              </TicketCard>
+            )}
           </div>
         </div>
       )}
     </>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  type = "text",
-  required = false,
-  autoComplete,
-  inputMode,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
-  required?: boolean;
-  autoComplete?: string;
-  inputMode?: "numeric" | "text" | "tel" | "email";
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.15em] text-white/50">
-        {label}
-      </span>
-      <input
-        type={type}
-        value={value}
-        required={required}
-        autoComplete={autoComplete}
-        inputMode={inputMode}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-cyan/60"
-      />
-    </label>
   );
 }

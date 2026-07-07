@@ -1,7 +1,7 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   resolvePass,
   claimPass,
@@ -9,6 +9,7 @@ import {
   type PassResolution,
   type FestPassDetail,
 } from "@/lib/festApi";
+import { Field, SelectField, FileField, submitCls, TicketCard } from "./form";
 
 type State =
   | { kind: "loading" }
@@ -39,6 +40,26 @@ function statusPill(status: string) {
     default:
       return { label: status, cls: "border-white/20 bg-white/10 text-white/70" };
   }
+}
+
+function Pill({ status }: { status: string }) {
+  const p = statusPill(status);
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] ${p.cls}`}>
+      <span className="h-1.5 w-1.5 rounded-full bg-current" />
+      {p.label}
+    </span>
+  );
+}
+
+function EventChip({ name, venue }: { name: string; venue: string }) {
+  return (
+    <div className="inline-flex max-w-full items-center gap-2 rounded-md border border-white/10 bg-black/25 px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-white/60">
+      <span className="truncate">{name}</span>
+      <span className="text-white/25">·</span>
+      <span className="truncate text-white/45">{venue}</span>
+    </div>
+  );
 }
 
 export default function PassView({
@@ -99,8 +120,6 @@ export default function PassView({
         id_card: idCard,
         extra: {},
       });
-      // Claim returns the updated pass directly — flip to the valid view
-      // without a second round-trip, reusing the event we already have.
       setState({
         kind: "resolved",
         data: { needs_claim: false, event: state.data.event, pass },
@@ -114,213 +133,134 @@ export default function PassView({
 
   const requiresIdCard =
     state.kind === "resolved" &&
-    // Gate the upload if the backend ever exposes the flag; until then it's
-    // always shown as optional.
     (state.data.event as { requires_id_card?: boolean }).requires_id_card;
 
-  return (
-    <div className="w-full max-w-sm rounded-2xl border border-white/15 bg-[#0b0518]/95 p-8 text-center shadow-2xl">
-      <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-cyan/30 bg-cyan/10 text-2xl">
-        🎟️
-      </div>
+  // Compute the ticket header + body for the current state.
+  let pill: ReactNode = null;
+  let title: ReactNode = null;
+  let subtitle: ReactNode = null;
+  let body: ReactNode = null;
 
-      {state.kind === "loading" && (
+  if (state.kind === "loading") {
+    body = (
+      <div className="py-4 text-center">
+        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-white/15 border-t-violet-400" />
         <p className="text-sm text-white/60">Resolving pass…</p>
-      )}
+      </div>
+    );
+  } else if (state.kind === "error") {
+    pill = <Pill status="cancelled" />;
+    title = "Pass Not Found";
+    body = (
+      <div className="text-center">
+        <p className="text-sm text-white/60">{state.message}</p>
+        <button
+          type="button"
+          onClick={load}
+          className="mt-6 w-full rounded-lg border border-white/15 py-3 text-sm font-semibold text-white/80 transition-colors hover:bg-white/5 hover:text-white"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  } else {
+    const { event, pass, needs_claim } = state.data;
+    subtitle = <EventChip name={event.name} venue={event.venue} />;
 
-      {state.kind === "error" && (
-        <>
-          <span className="inline-block rounded-full border border-rose-500/30 bg-rose-500/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-rose-300">
-            Invalid Pass
-          </span>
-          <h1 className="mt-4 text-xl font-black text-white">Pass Not Found</h1>
-          <p className="mt-3 text-sm text-white/60">{state.message}</p>
-          <button
-            type="button"
-            onClick={load}
-            className="mt-5 w-full rounded-full border border-white/15 py-2.5 text-sm font-semibold text-white/80 hover:text-white"
-          >
-            Try Again
-          </button>
-        </>
-      )}
+    if (mode === "status" && needs_claim) {
+      pill = <Pill status="blank" />;
+      title = "Not Yet Claimed";
+      body = (
+        <p className="text-center text-sm leading-relaxed text-white/60">
+          This pass is still blank. Head to{" "}
+          <span className="font-semibold text-cyan">Claim</span> to register your
+          details and activate it.
+        </p>
+      );
+    } else if (mode === "claim" && needs_claim) {
+      pill = <Pill status="blank" />;
+      title = "Claim Your Pass";
+      body = (
+        <form onSubmit={claim} className="space-y-3.5">
+          <Field label="Full name" value={form.name} onChange={setField("name")} autoComplete="name" required />
+          <Field label="Phone" value={form.phone} onChange={setField("phone")} type="tel" inputMode="numeric" autoComplete="tel" required />
+          <Field label="Email" value={form.email} onChange={setField("email")} type="email" autoComplete="email" />
 
-      {/* Status mode + unclaimed → read-only "not yet claimed" card */}
-      {state.kind === "resolved" &&
-        mode === "status" &&
-        state.data.needs_claim && (
-          <>
-            <span className={`inline-block rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-[0.15em] ${statusPill("blank").cls}`}>
-              {statusPill("blank").label}
-            </span>
-            <h1 className="mt-4 text-2xl font-black tracking-tight">
-              <span className="text-gradient">Not Yet Claimed</span>
-            </h1>
-            <p className="mt-2 text-xs uppercase tracking-[0.15em] text-white/55">
-              {state.data.event.name} · {state.data.event.venue}
+          <SelectField label="Board" value={form.board} onChange={setField("board")}>
+            <option value="" className="bg-[#0e0a1a]">Select board (optional)</option>
+            {BOARD_OPTIONS.map((b) => (
+              <option key={b.value} value={b.value} className="bg-[#0e0a1a]">
+                {b.label}
+              </option>
+            ))}
+          </SelectField>
+
+          <div className="flex gap-3">
+            <Field label="Course" value={form.course} onChange={setField("course")} />
+            <Field label="City" value={form.city} onChange={setField("city")} />
+          </div>
+          <Field label="School / College" value={form.school_name} onChange={setField("school_name")} />
+
+          <FileField
+            label="ID Card"
+            cta="Upload ID card"
+            accept="image/jpeg,image/png,application/pdf"
+            required={!!requiresIdCard}
+            file={idCard}
+            onFile={setIdCard}
+          />
+
+          {error && (
+            <p className="rounded-md border border-rose-500/25 bg-rose-500/10 px-3 py-2 text-xs font-medium text-rose-300">
+              {error}
             </p>
-            <p className="mt-4 text-sm leading-relaxed text-white/60">
-              This pass is still blank. Head to{" "}
-              <span className="font-semibold text-cyan">Claim</span> to register
-              your details and activate it.
-            </p>
-          </>
-        )}
-
-      {/* Claim mode + unclaimed → full claim form */}
-      {state.kind === "resolved" && mode === "claim" && state.data.needs_claim && (
-        <>
-          <span className={`inline-block rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-[0.15em] ${statusPill("blank").cls}`}>
-            {statusPill("blank").label}
-          </span>
-          <h1 className="mt-4 text-2xl font-black tracking-tight">
-            <span className="text-gradient">Claim Your Pass</span>
-          </h1>
-          <p className="mt-2 text-xs uppercase tracking-[0.15em] text-white/55">
-            {state.data.event.name} · {state.data.event.venue}
-          </p>
-
-          <form onSubmit={claim} className="mt-5 space-y-3 text-left">
-            <Field label="Full name *" value={form.name} onChange={setField("name")} autoComplete="name" required />
-            <Field label="Phone *" value={form.phone} onChange={setField("phone")} type="tel" inputMode="numeric" autoComplete="tel" required />
-            <Field label="Email" value={form.email} onChange={setField("email")} type="email" autoComplete="email" />
-
-            <label className="block">
-              <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.15em] text-white/50">
-                Board
-              </span>
-              <select
-                value={form.board}
-                onChange={(e) => setField("board")(e.target.value)}
-                className="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-cyan/60"
-              >
-                <option value="" className="bg-[#0b0518]">Select board (optional)</option>
-                {BOARD_OPTIONS.map((b) => (
-                  <option key={b.value} value={b.value} className="bg-[#0b0518]">
-                    {b.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <div className="flex gap-3">
-              <Field label="Course" value={form.course} onChange={setField("course")} />
-              <Field label="City" value={form.city} onChange={setField("city")} />
-            </div>
-            <Field label="School / College" value={form.school_name} onChange={setField("school_name")} />
-
-            <label className="block">
-              <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.15em] text-white/50">
-                ID Card {requiresIdCard ? "*" : "(optional)"}
-              </span>
-              <input
-                type="file"
-                accept="image/jpeg,image/png,application/pdf"
-                required={!!requiresIdCard}
-                onChange={(e) => setIdCard(e.target.files?.[0] ?? null)}
-                className="w-full rounded-lg border border-white/15 bg-white/5 text-sm text-white/80 outline-none file:mr-3 file:cursor-pointer file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-wide file:text-cyan focus:border-cyan/60"
-              />
-              {idCard && (
-                <span className="mt-1 block truncate text-[11px] text-white/50">
-                  {idCard.name}
-                </span>
-              )}
-            </label>
-
-            {error && <p className="text-xs font-medium text-rose-400">{error}</p>}
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="mt-1 w-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-500 py-3 font-semibold text-white transition-transform hover:scale-[1.02] disabled:opacity-60"
-            >
-              {submitting ? "Validating…" : "Validate & Claim"}
-            </button>
-          </form>
-        </>
-      )}
-
-      {/* Already claimed / used / cancelled → status view (no form) */}
-      {state.kind === "resolved" && !state.data.needs_claim && (
-        <>
-          <span className={`inline-block rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-[0.15em] ${statusPill(state.data.pass.status).cls}`}>
-            {statusPill(state.data.pass.status).label}
-          </span>
-          <h1 className="mt-4 text-2xl font-black tracking-tight">
-            <span className="text-gradient">
-              {state.data.pass.registration_name
-                ? `Hi, ${state.data.pass.registration_name}`
-                : "Your Pass"}
-            </span>
-          </h1>
-          <p className="mt-2 text-xs uppercase tracking-[0.15em] text-white/55">
-            {state.data.event.name} · {state.data.event.venue}
-          </p>
-
-          {state.data.pass.png_s3_url && (
-            <img
-              src={state.data.pass.png_s3_url}
-              alt={`Pass ${state.data.pass.code}`}
-              className="mx-auto mt-5 w-full rounded-xl border border-white/10"
-            />
           )}
 
-          <div className="mt-4 rounded-xl border border-cyan/25 bg-cyan/5 px-4 py-3">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-white/50">
+          <button type="submit" disabled={submitting} className={`mt-2 ${submitCls}`}>
+            {submitting ? "Validating…" : "Validate & Claim"}
+          </button>
+        </form>
+      );
+    } else {
+      pill = <Pill status={pass.status} />;
+      title = pass.registration_name ? `Hi, ${pass.registration_name}` : "Your Pass";
+      body = (
+        <div className="text-center">
+          {pass.png_s3_url && (
+            <div className="overflow-hidden rounded-xl border border-white/10 bg-black/20 p-2">
+              <img
+                src={pass.png_s3_url}
+                alt={`Pass ${pass.code}`}
+                className="w-full rounded-lg"
+              />
+            </div>
+          )}
+          <div className="mt-5 flex items-center justify-between rounded-lg border border-white/10 bg-black/25 px-4 py-3 text-left">
+            <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/45">
               Pass Code
-            </p>
-            <p className="font-mono text-lg font-bold text-cyan">
-              {state.data.pass.code}
-            </p>
+            </span>
+            <span className="font-mono text-base font-bold tracking-wide text-white">
+              {pass.code}
+            </span>
           </div>
-
-          {(state.data.pass.s3_url || state.data.pass.png_s3_url) && (
+          {(pass.s3_url || pass.png_s3_url) && (
             <a
-              href={state.data.pass.s3_url || state.data.pass.png_s3_url}
+              href={pass.s3_url || pass.png_s3_url}
               target="_blank"
               rel="noreferrer"
-              className="mt-5 block w-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-500 py-3 font-semibold text-white transition-transform hover:scale-[1.02]"
+              className={`mt-5 ${submitCls}`}
             >
               Download Pass
             </a>
           )}
-        </>
-      )}
-    </div>
-  );
-}
+        </div>
+      );
+    }
+  }
 
-function Field({
-  label,
-  value,
-  onChange,
-  type = "text",
-  required = false,
-  autoComplete,
-  inputMode,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
-  required?: boolean;
-  autoComplete?: string;
-  inputMode?: "numeric" | "text" | "tel" | "email";
-}) {
   return (
-    <label className="block">
-      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.15em] text-white/50">
-        {label}
-      </span>
-      <input
-        type={type}
-        value={value}
-        required={required}
-        autoComplete={autoComplete}
-        inputMode={inputMode}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none placeholder:text-white/30 focus:border-cyan/60"
-      />
-    </label>
+    <TicketCard pill={pill} title={title} subtitle={subtitle}>
+      {body}
+    </TicketCard>
   );
 }

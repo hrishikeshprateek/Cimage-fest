@@ -2,39 +2,100 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { events, fest } from "@/lib/data";
+import { fest } from "@/lib/data";
+import { getFestActivities, type FestActivity } from "@/lib/festApi";
+import GetPassButton from "./GetPassButton";
+
+// Gradient fallbacks used when an event has no banner image yet.
+const ACCENTS = [
+  "from-violet-500 to-fuchsia-500",
+  "from-cyan-500 to-blue-500",
+  "from-emerald-500 to-teal-500",
+  "from-amber-500 to-orange-500",
+  "from-pink-500 to-rose-500",
+  "from-indigo-500 to-violet-500",
+];
+const accentOf = (i: number) => ACCENTS[i % ACCENTS.length];
 
 export default function ImmersiveEvents() {
   const scroller = useRef<HTMLDivElement>(null);
   const panels = useRef<(HTMLElement | null)[]>([]);
-  const [active, setActive] = useState(0); // index into event panels (0 = intro)
+  const [active, setActive] = useState(0);
+  const [list, setList] = useState<FestActivity[] | null>(null);
 
-  // Track which panel is centered in the viewport.
+  // Fetch the fest's activity cards. No fallback — an empty/failed result
+  // renders the empty state below.
   useEffect(() => {
+    let cancelled = false;
+    getFestActivities(fest.passSlug)
+      .then((d) => {
+        if (!cancelled) setList([...d].sort((a, b) => a.order - b.order));
+      })
+      .catch(() => {
+        if (!cancelled) setList([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Track which panel is centered — re-attaches once the list renders.
+  useEffect(() => {
+    if (!list) return;
     const root = scroller.current;
     if (!root) return;
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            const idx = Number(
-              (entry.target as HTMLElement).dataset.index ?? 0
-            );
-            setActive(idx);
+            setActive(Number((entry.target as HTMLElement).dataset.index ?? 0));
           }
         });
       },
-      { root, threshold: 0.55 }
+      { root, threshold: 0.55 },
     );
     panels.current.forEach((p) => p && observer.observe(p));
     return () => observer.disconnect();
-  }, []);
+  }, [list]);
 
   const scrollTo = (i: number) =>
     panels.current[i]?.scrollIntoView({ behavior: "smooth" });
 
-  // Panel 0 = intro, panels 1..n = events, panel n+1 = outro
-  const total = events.length + 2;
+  if (!list) {
+    return (
+      <div className="flex h-dvh flex-col items-center justify-center gap-4">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/15 border-t-violet-400" />
+        <p className="font-mono text-xs uppercase tracking-[0.3em] text-white/50">
+          Loading events…
+        </p>
+      </div>
+    );
+  }
+
+  if (list.length === 0) {
+    return (
+      <div className="flex h-dvh flex-col items-center justify-center gap-4 px-6 text-center">
+        <p className="font-mono text-xs uppercase tracking-[0.4em] text-cyan">
+          Events
+        </p>
+        <h1 className="text-4xl font-black tracking-tight text-white sm:text-5xl">
+          No events yet
+        </h1>
+        <p className="max-w-md text-white/60">
+          The line-up is being finalised. Check back soon.
+        </p>
+        <Link
+          href="/"
+          className="mt-4 rounded-full border border-white/20 bg-white/5 px-6 py-2.5 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10"
+        >
+          Back to Home
+        </Link>
+      </div>
+    );
+  }
+
+  const events = list;
+  const total = events.length + 2; // intro + events + outro
 
   return (
     <>
@@ -81,87 +142,111 @@ export default function ImmersiveEvents() {
         {events.map((event, i) => {
           const index = i + 1;
           const isActive = active === index;
+          const accent = accentOf(i);
+          const hasImage = !!event.background_image_url;
           return (
             <section
-              key={event.slug}
+              key={event.id}
               data-index={index}
               ref={(el) => {
                 panels.current[index] = el;
               }}
               className="relative flex h-dvh snap-start items-center overflow-hidden px-6 sm:px-16 md:px-24"
             >
-              {/* Per-event gradient wash + glows */}
-              <div
-                className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${event.accent} opacity-[0.14]`}
-              />
-              <div
-                className={`pointer-events-none absolute -right-32 top-1/4 h-[34rem] w-[34rem] rounded-full bg-gradient-to-br ${event.accent} opacity-25 blur-[120px] transition-transform duration-1000 ${
-                  isActive ? "translate-x-0" : "translate-x-24"
-                }`}
-              />
+              {/* Background: banner image, or gradient fallback */}
+              {hasImage ? (
+                <>
+                  <div
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{ backgroundImage: `url(${event.background_image_url})` }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#05010f] via-[#05010f]/85 to-[#05010f]/30" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#05010f] via-transparent to-[#05010f]/40" />
+                </>
+              ) : (
+                <>
+                  <div
+                    className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${accent} opacity-[0.14]`}
+                  />
+                  <div
+                    className={`pointer-events-none absolute -right-32 top-1/4 h-[34rem] w-[34rem] rounded-full bg-gradient-to-br ${accent} opacity-25 blur-[120px] transition-transform duration-1000 ${
+                      isActive ? "translate-x-0" : "translate-x-24"
+                    }`}
+                  />
+                </>
+              )}
 
               {/* Giant ghost index */}
-              <span className="pointer-events-none absolute -bottom-10 right-2 select-none text-[34vw] font-black leading-none text-white/[0.035] sm:text-[26vw]">
+              <span className="pointer-events-none absolute -bottom-10 right-2 select-none text-[34vw] font-black leading-none text-white/[0.04] sm:text-[26vw]">
                 {String(index).padStart(2, "0")}
               </span>
 
               {/* Content */}
               <div
                 className={`relative z-10 max-w-3xl transition-all duration-700 ${
-                  isActive
-                    ? "translate-y-0 opacity-100"
-                    : "translate-y-10 opacity-0"
+                  isActive ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
                 }`}
               >
-                <div className="mb-5 flex items-center gap-4">
-                  <span
-                    className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${event.accent} text-3xl shadow-xl`}
-                  >
-                    {event.icon}
-                  </span>
-                  <span className="rounded-full border border-white/15 bg-black/30 px-4 py-1.5 font-mono text-xs uppercase tracking-[0.2em] text-cyan">
-                    {event.category}
-                  </span>
-                </div>
+                {(event.icon || event.category) && (
+                  <div className="mb-5 flex items-center gap-4">
+                    {event.icon && (
+                      <span
+                        className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${accent} text-3xl shadow-xl`}
+                      >
+                        {event.icon}
+                      </span>
+                    )}
+                    {event.category && (
+                      <span className="rounded-full border border-white/15 bg-black/30 px-4 py-1.5 font-mono text-xs uppercase tracking-[0.2em] text-cyan">
+                        {event.category}
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 <h2 className="text-5xl font-black tracking-tighter sm:text-7xl">
-                  {event.title}
+                  {event.name}
                 </h2>
-                <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/70">
-                  {event.blurb}
-                </p>
+                {event.description && (
+                  <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/70">
+                    {event.description}
+                  </p>
+                )}
 
                 <dl className="mt-8 flex flex-wrap gap-x-10 gap-y-4">
                   {[
-                    ["Date", event.date],
-                    ["Time", event.time],
+                    ["Date", event.date_label],
+                    ["Time", event.time_label],
                     ["Venue", event.venue],
-                    ["Team", event.team],
-                    ["Prize Pool", event.prize],
-                  ].map(([label, value]) => (
-                    <div key={label}>
-                      <dt className="font-mono text-[10px] uppercase tracking-wider text-white/40">
-                        {label}
-                      </dt>
-                      <dd
-                        className={
-                          label === "Prize Pool"
-                            ? "text-lg font-bold text-gradient"
-                            : "text-lg font-semibold text-white/90"
-                        }
-                      >
-                        {value}
-                      </dd>
-                    </div>
-                  ))}
+                    ["Team", event.team_size],
+                    ["Prize Pool", event.prize_pool],
+                  ]
+                    .filter(([, value]) => value)
+                    .map(([label, value]) => (
+                      <div key={label}>
+                        <dt className="font-mono text-[10px] uppercase tracking-wider text-white/40">
+                          {label}
+                        </dt>
+                        <dd
+                          className={
+                            label === "Prize Pool"
+                              ? "text-lg font-bold text-gradient"
+                              : "text-lg font-semibold text-white/90"
+                          }
+                        >
+                          {value}
+                        </dd>
+                      </div>
+                    ))}
                 </dl>
 
-                <a
-                  href="#register"
-                  className={`mt-9 inline-flex rounded-full bg-gradient-to-r ${event.accent} px-8 py-3.5 font-semibold text-white shadow-lg transition-transform hover:scale-105`}
-                >
-                  Register for {event.title}
-                </a>
+                <div className="mt-9">
+                  <GetPassButton
+                    slug={event.register_slug}
+                    label="Register"
+                    className={`inline-flex rounded-full bg-gradient-to-r ${accent} px-8 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:brightness-110`}
+                  />
+                </div>
               </div>
             </section>
           );
@@ -183,15 +268,14 @@ export default function ImmersiveEvents() {
             Ready to <span className="text-gradient">enter the arena?</span>
           </h2>
           <div className="relative mt-10 flex flex-col gap-3 sm:flex-row">
-            <a
-              href="#register"
-              className="rounded-full bg-gradient-to-r from-violet-500 to-cyan-500 px-8 py-3.5 font-semibold text-white shadow-lg shadow-violet-500/30 transition-transform hover:scale-105"
-            >
-              Register Now
-            </a>
+            <GetPassButton
+              slug={fest.passSlug}
+              label="Register Now"
+              className="rounded-full bg-gradient-to-r from-indigo-400 to-violet-400 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-105"
+            />
             <Link
               href="/"
-              className="rounded-full border border-white/20 bg-white/5 px-8 py-3.5 font-semibold text-white/90 transition-colors hover:bg-white/10"
+              className="rounded-full border border-white/20 bg-white/5 px-8 py-3.5 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10"
             >
               Back to Home
             </Link>
@@ -208,9 +292,9 @@ export default function ImmersiveEvents() {
           const index = i + 1;
           return (
             <button
-              key={event.slug}
+              key={event.id}
               type="button"
-              aria-label={`Go to ${event.title}`}
+              aria-label={`Go to ${event.name}`}
               onClick={() => scrollTo(index)}
               className={`rounded-full transition-all duration-300 ${
                 active === index
