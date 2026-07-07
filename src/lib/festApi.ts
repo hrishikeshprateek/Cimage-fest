@@ -1,4 +1,4 @@
-// Fest website API client — fast.cimage.in
+// Fest website API client — site: fest.cimage.in (QR target /p/<token>)
 // Base + endpoints per the fest backend. No auth required.
 
 export const FEST_API_BASE =
