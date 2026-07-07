@@ -18,9 +18,6 @@ export default function PassHub() {
   return (
     <div className="w-full max-w-sm">
       <div className="mb-2 text-center">
-        <h1 className="text-2xl font-black tracking-tight">
-          <span className="text-gradient">Your Pass</span>
-        </h1>
         <p className="mt-1 text-xs text-white/50">
           Claim a hard pass, check its status, or complete a payment.
         </p>

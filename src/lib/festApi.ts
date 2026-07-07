@@ -72,14 +72,42 @@ export type PassResolution = {
   pass: FestPassDetail;
 };
 
+// Collect DRF-style field validation messages, e.g.
+// { "phone": ["Phone must be 10 digits."], "board": ["…"] } → the strings.
+function collectFieldErrors(obj: Record<string, unknown>): string[] {
+  const out: string[] = [];
+  for (const val of Object.values(obj)) {
+    if (typeof val === "string") continue; // top-level metadata, not a field error
+    if (Array.isArray(val)) {
+      for (const item of val) if (typeof item === "string") out.push(item);
+    }
+  }
+  return out;
+}
+
 async function readError(res: Response): Promise<string> {
   try {
-    const body = (await res.json()) as Record<string, unknown>;
-    const msg =
-      (body.detail as string) ||
-      (body.message as string) ||
-      (body.error as string);
-    if (msg) return msg;
+    const body = (await res.json()) as unknown;
+    if (body && typeof body === "object") {
+      const obj = body as Record<string, unknown>;
+
+      // Prefer the specific field message(s) over any generic wrapper text.
+      const fieldMsgs = collectFieldErrors(obj);
+      if (fieldMsgs.length) return fieldMsgs.join(" ");
+
+      // Some responses nest field errors under `errors` / `data`.
+      for (const key of ["errors", "data"] as const) {
+        const nested = obj[key];
+        if (nested && typeof nested === "object") {
+          const msgs = collectFieldErrors(nested as Record<string, unknown>);
+          if (msgs.length) return msgs.join(" ");
+        }
+      }
+
+      // Single-message forms.
+      const direct = obj.detail ?? obj.message ?? obj.error;
+      if (typeof direct === "string" && direct) return direct;
+    }
   } catch {
     // non-JSON body — fall through
   }

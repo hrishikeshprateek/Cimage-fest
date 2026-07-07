@@ -143,7 +143,7 @@ export default function GetPassButton({
 
       {open && (
         <div
-          className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto p-6 py-10"
+          className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto px-6 pt-10 pb-[calc(7rem+env(safe-area-inset-bottom))] md:pb-10"
           role="dialog"
           aria-modal="true"
           aria-label="Register for CIMAGE Fest"
