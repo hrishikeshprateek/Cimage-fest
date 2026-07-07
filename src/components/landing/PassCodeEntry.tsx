@@ -4,10 +4,12 @@ import { useState } from "react";
 import QrScanner from "./QrScanner";
 
 // Accept a raw pass code/token or a pasted QR link (…/p/<token>).
+// The token is an opaque RAW key — never decode/encode it, just pull the
+// last path segment verbatim so we send exactly what the backend stored.
 export function extractToken(raw: string): string {
   const s = raw.trim();
   const m = s.match(/\/p\/([^/?#\s]+)/);
-  return m ? decodeURIComponent(m[1]) : s;
+  return m ? m[1] : s;
 }
 
 export default function PassCodeEntry({
