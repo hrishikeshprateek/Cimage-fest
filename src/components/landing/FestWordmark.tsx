@@ -19,16 +19,16 @@ export default function FestWordmark() {
         </div>
       </div>
 
-      <div className="mt-7 flex flex-wrap items-center justify-center gap-3 font-mono text-sm font-bold tracking-[0.2em] sm:text-base">
-        <span className="rounded-full border border-cyan/50 bg-black/70 px-4 py-1.5 text-cyan shadow-[0_0_20px_rgba(34,211,238,0.3)] backdrop-blur-sm">
+      <div className="mt-7 flex flex-col items-center gap-2.5 sm:flex-row sm:gap-3">
+        <span className="max-w-[92vw] rounded-full border border-cyan/50 bg-black/70 px-4 py-1.5 text-center font-mono text-xs font-bold uppercase leading-tight tracking-[0.12em] text-cyan shadow-[0_0_20px_rgba(34,211,238,0.3)] backdrop-blur-sm sm:text-sm sm:tracking-[0.16em]">
           {fest.dates.toUpperCase()}
         </span>
-        <span className="rounded-full border border-violet-400/50 bg-black/70 px-4 py-1.5 text-lg font-extrabold tracking-[0.35em] text-violet-200 shadow-[0_0_20px_rgba(139,92,246,0.35)] backdrop-blur-sm sm:text-xl">
+        <span className="rounded-full border border-violet-400/50 bg-black/70 px-4 py-1.5 pl-[calc(1rem+0.2em)] font-mono text-sm font-extrabold tracking-[0.2em] text-violet-200 shadow-[0_0_20px_rgba(139,92,246,0.35)] backdrop-blur-sm sm:text-base">
           {fest.edition}
         </span>
       </div>
 
-      <p className="mt-4 inline-block rounded-full bg-black/60 px-4 py-1 font-mono text-[10px] uppercase tracking-[0.3em] text-magenta backdrop-blur-sm sm:text-xs">
+      <p className="mt-4 inline-block rounded-full bg-black/60 px-4 pl-[calc(1rem+0.28em)] py-1 font-mono text-[10px] uppercase tracking-[0.28em] text-magenta backdrop-blur-sm sm:text-xs">
         4 Weekends · 1 Vibe
       </p>
     </div>
