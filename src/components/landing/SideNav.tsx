@@ -9,7 +9,7 @@ import {
 const items = [
   { label: "Home", href: "/", Icon: HomeIcon },
   { label: "Events", href: "/events", Icon: GridIcon },
-  { label: "Pass", href: "#pass", Icon: TicketIcon },
+  { label: "Pass", href: "/validate", Icon: TicketIcon },
   { label: "Contact", href: "#contact", Icon: PhoneIcon },
   { label: "About Us", href: "#about", Icon: PeopleIcon },
 ];
