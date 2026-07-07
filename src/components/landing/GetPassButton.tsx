@@ -30,7 +30,7 @@ const EMPTY_FORM = {
 };
 
 const DEFAULT_TRIGGER_CLS =
-  "shrink-0 rounded-md bg-gradient-to-r from-indigo-400 to-violet-400 px-5 py-2 font-mono text-sm font-bold uppercase tracking-[0.15em] text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-105";
+  "shrink-0 rounded-full bg-gradient-to-r from-indigo-400 to-violet-400 pl-[1.15rem] pr-4 py-2 font-mono text-sm font-bold uppercase tracking-[0.12em] text-white shadow-md shadow-indigo-500/20 ring-1 ring-white/10 transition hover:brightness-105";
 
 export default function GetPassButton({
   slug = fest.passSlug,
