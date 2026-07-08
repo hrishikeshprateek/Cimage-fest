@@ -4,6 +4,7 @@ import VideoWall from "@/components/landing/VideoWall";
 import TopBar from "@/components/landing/TopBar";
 import SocialRail from "@/components/landing/SocialRail";
 import FestWordmark from "@/components/landing/FestWordmark";
+import ScrollToAdvance from "@/components/landing/ScrollToAdvance";
 
 export default function Home() {
   return (
@@ -30,6 +31,9 @@ export default function Home() {
       <div className="absolute inset-0 z-20 flex items-center justify-center">
         <FestWordmark />
       </div>
+
+      {/* Force-scroll-down → advance to the next page (/events) */}
+      <ScrollToAdvance />
     </main>
   );
 }

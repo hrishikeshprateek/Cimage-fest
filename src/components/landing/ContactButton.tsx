@@ -6,8 +6,10 @@ import ContactDialog from "./ContactDialog";
 
 export default function ContactButton({
   className = "",
+  label = "Contact",
 }: {
   className?: string;
+  label?: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -22,7 +24,7 @@ export default function ContactButton({
         }
       >
         <PhoneIcon className="h-4 w-4" />
-        Contact
+        {label}
       </button>
 
       <ContactDialog open={open} onClose={() => setOpen(false)} />

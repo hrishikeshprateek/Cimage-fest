@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
-import TopBar from "@/components/landing/TopBar";
+import "../mu.css";
 import AboutView from "@/components/landing/AboutView";
 
 export const metadata: Metadata = {
-  title: "About — CIMAGE Fest",
+  title: "About — CIMAGE",
   description:
-    "About CIMAGE — Bihar's most successful IT & Management college. 17+ years, 13,500+ alumni placed, and a group of four campuses built on Knowledge, Skill, Success.",
+    "About CIMAGE — Bihar's most successful IT & Management college. 17+ years, 13,500+ students placed, an IIT Bombay E-Yantra lab and a Wipro Centre of Excellence on campus.",
 };
 
 export default function AboutPage() {
   return (
-    <main className="relative min-h-dvh bg-[#05010f] text-white">
-      <TopBar />
+    <main className="relative min-h-dvh bg-white text-slate-900">
       <AboutView />
     </main>
   );

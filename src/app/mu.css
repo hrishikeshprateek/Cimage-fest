@@ -1,0 +1,727 @@
+/* ============================================================
+   Masters' Union theme — the subset required by the About page's
+   "Recognised by" band (MURecognised) and "Why CIMAGE" bento stats
+   (MUStats). Lifted 1:1 from the MU mu.css; scoped under .mu-root so
+   it never leaks into the rest of the site.
+   ============================================================ */
+
+
+.mu-root {
+  /* MU palette — verbatim from mastersunion.org root.css */
+  --mu-yellow: #fad133;
+  --mu-black: #090909;
+  --mu-black2: #1e1e1e;
+  --mu-black5: #262626;
+  --mu-white: #ffffff;
+  --mu-white3: #fafafa;
+  --mu-grey: #737373;
+  --mu-grey3: #404040;
+  --mu-border: #d4d4d4;
+  --mu-border-soft: #e5e5e5;
+  --mu-gradient: linear-gradient(90deg, #39b6d8 6.41%, #f7d344 51.47%, #e38330 96.52%);
+
+  --mu-sans: var(--font-sans), system-ui, -apple-system, sans-serif;
+
+  background: var(--mu-white);
+  color: var(--mu-black);
+  font-family: var(--mu-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ============================================================
+   BENTO STATS — exact port of MU .bentoSection / .stats-grid.
+   ============================================================ */
+.mu-bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 7px;
+  gap: 16px;
+  width: 100%;
+}
+
+.mu-stat-card {
+  border-radius: 16px;
+  border: 1px solid #404040;
+  background: rgba(38, 38, 38, 0.8);
+  backdrop-filter: blur(13px);
+  -webkit-backdrop-filter: blur(13px);
+  display: flex;
+  padding: 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  overflow: hidden;
+  grid-row: span var(--row-span, 12);
+  grid-column: span var(--col-span, 1);
+}
+
+.mu-bento-grid .mu-stat-card:nth-child(1) { --row-span: 13; }
+.mu-bento-grid .mu-stat-card:nth-child(4) { --row-span: 16; }
+.mu-bento-grid .mu-stat-card:nth-child(5) {
+  --row-span: 10;
+  --col-span: 2;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 16px;
+}
+.mu-bento-grid .mu-stat-card:nth-child(6) { --row-span: 9; }
+.mu-bento-grid .mu-stat-card:nth-child(7) { --row-span: 16; }
+.mu-bento-grid .mu-stat-card:nth-child(8) { --row-span: 10; --col-span: 3; }
+
+.mu-bento-head .mu-amount {
+  font-size: 40px;
+  line-height: 115%;
+  font-weight: 600;
+  color: #ffffff;
+}
+.mu-bento-head .mu-line1 {
+  font-size: 18px;
+  line-height: 120%;
+  font-weight: 500;
+  color: #e5e5e5;
+}
+.mu-bento-head .mu-line2 {
+  font-size: 14px;
+  line-height: 150%;
+  color: #a3a3a3;
+}
+
+.mu-bento-logos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: stretch;
+  margin-top: 12px;
+  width: 100%;
+}
+.mu-bento-logo {
+  flex: 1 1 calc(50% - 4px);
+  max-width: 134px;
+  min-width: 0;
+  height: 54px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  color: #ffffff;
+}
+.mu-bento-logo svg {
+  max-width: 100%;
+  max-height: 26px;
+  opacity: 0.92;
+}
+
+.mu-bento-grid .mu-stat-card:nth-child(5) .mu-bento-logos { max-width: 300px; align-self: center; }
+.mu-bento-grid .mu-stat-card:nth-child(5) .mu-bento-logo {
+  flex: 0 0 auto;
+  width: 100px;
+  max-width: 100px;
+  height: 50px;
+}
+.mu-bento-grid .mu-stat-card:nth-child(8) .mu-bento-logos {
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.mu-bento-grid .mu-stat-card:nth-child(8) .mu-bento-logo {
+  flex: 0 0 auto;
+  width: 132px;
+  max-width: 132px;
+  height: 50px;
+}
+
+/* Responsive — drop the fixed masonry on tablet/mobile so nothing clips. */
+@media (max-width: 1024px) {
+  .mu-bento-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: auto;
+  }
+  .mu-stat-card {
+    grid-row: auto !important;
+    grid-column: auto !important;
+    flex-direction: column !important;
+  }
+  .mu-bento-grid .mu-stat-card:nth-child(5),
+  .mu-bento-grid .mu-stat-card:nth-child(8) { grid-column: span 2 !important; }
+  .mu-bento-grid .mu-stat-card:nth-child(5) .mu-bento-logos { max-width: none; align-self: stretch; }
+  .mu-bento-grid .mu-stat-card:nth-child(8) .mu-bento-logos { flex-wrap: wrap; }
+  .mu-bento-grid .mu-stat-card:nth-child(8) .mu-bento-logo { flex: 0 0 auto; width: 96px; }
+}
+@media (max-width: 640px) {
+  .mu-bento-grid { grid-template-columns: 1fr; }
+  .mu-bento-grid .mu-stat-card:nth-child(5),
+  .mu-bento-grid .mu-stat-card:nth-child(8) { grid-column: auto !important; }
+}
+
+/* ============================================================
+   RECOGNISED BY — accreditation band under the hero.
+   ============================================================ */
+.mu-recog {
+  padding: 50px 0 56px;
+}
+.mu-recog-eyebrow {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #8c8c8c;
+}
+.mu-recog-rule {
+  display: block;
+  width: 46px;
+  height: 3px;
+  border-radius: 3px;
+  margin: 12px auto 0;
+  background: var(--mu-gradient);
+}
+.mu-recog-row {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  max-width: 1100px;
+  margin: 36px auto 0;
+}
+.mu-recog-item {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 20px;
+  border-left: 1px solid #e6e6e6;
+}
+.mu-recog-item:first-child {
+  border-left: none;
+}
+.mu-recog-logobox {
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mu-recog-logobox img {
+  max-height: clamp(56px, 6vw, 80px);
+  max-width: 100%;
+  object-fit: contain;
+}
+.mu-recog-logobox.seal img {
+  max-height: clamp(82px, 9vw, 108px);
+}
+.mu-recog-label {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #404040;
+  text-align: center;
+}
+@media (max-width: 700px) {
+  .mu-recog {
+    padding: 36px 0 42px;
+  }
+  .mu-recog-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px 8px;
+    max-width: 440px;
+    margin-top: 26px;
+  }
+  .mu-recog-item {
+    border-left: none;
+    padding: 0 4px;
+  }
+  .mu-recog-logobox {
+    height: 96px;
+  }
+  .mu-recog-logobox img {
+    max-height: 46px;
+  }
+  .mu-recog-logobox.seal img {
+    max-height: 66px;
+  }
+  .mu-recog-label {
+    font-size: 11.5px;
+  }
+}
+
+/* ============================================================
+   OUR PROGRAMMES — port of MU .ourProgramme. Category tab pills,
+   prev/next arrows, and a horizontal coverflow rail of detail cards.
+   ============================================================ */
+
+/* Shared helper: hide the native scrollbar on the scrolling rail/tabs. */
+.mu-no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.mu-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Display heading — uses the site font (Geist) at a heavy weight so the About
+   page's typography matches every other page; the .italic accent is neutralised. */
+.mu-serif {
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.mu-serif .italic {
+  font-style: normal;
+}
+
+/* Tabs -------------------------------------------------------- */
+.mu-prog-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.mu-prog-tab {
+  appearance: none;
+  border: 1px solid #d4d4d4;
+  background: #ffffff;
+  color: #404040;
+  font-family: var(--mu-sans, system-ui), sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  padding: 11px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.mu-prog-tab:hover {
+  border-color: #090909;
+}
+.mu-prog-tab.is-active {
+  background: #090909;
+  border-color: #090909;
+  color: #ffffff;
+}
+
+/* Prev/next arrows ------------------------------------------- */
+.mu-prog-arrows {
+  display: flex;
+  gap: 10px;
+}
+.mu-prog-arrow-btn {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid #d4d4d4;
+  background: #ffffff;
+  color: #090909;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.mu-prog-arrow-btn:hover {
+  background: #090909;
+  border-color: #090909;
+  color: #ffffff;
+}
+
+/* Rail + right-edge fade cue ---------------------------------- */
+.mu-prog-railwrap {
+  position: relative;
+}
+.mu-prog-rail {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 8px 4px 20px;
+  -webkit-overflow-scrolling: touch;
+}
+.mu-prog-fade {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 20px;
+  width: 90px;
+  background: linear-gradient(90deg, rgba(244, 244, 245, 0) 0%, #f4f4f5 100%);
+}
+@media (max-width: 640px) {
+  .mu-prog-fade {
+    display: none;
+  }
+}
+
+/* Card — coverflow scale/brightness driven by the --t set in JS. */
+.mu-prog-card {
+  --t: 0;
+  flex: 0 0 auto;
+  width: 510px;
+  max-width: 88vw;
+  scroll-snap-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid #e5e5e5;
+  background: #ffffff;
+  box-shadow: 0 18px 44px rgba(9, 9, 9, 0.06);
+  transform: scale(calc(0.955 + 0.045 * var(--t)));
+  filter: brightness(calc(0.94 + 0.06 * var(--t)));
+  opacity: calc(0.78 + 0.22 * var(--t));
+  transition: transform 0.35s ease, filter 0.35s ease, opacity 0.35s ease;
+}
+.mu-prog-card.is-focus {
+  border-color: #d4d4d4;
+  box-shadow: 0 26px 60px rgba(9, 9, 9, 0.12);
+}
+
+/* Image + play badge ----------------------------------------- */
+.mu-prog-imgwrap {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  aspect-ratio: 560 / 336;
+  background: #ededed;
+}
+.mu-prog-imgwrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(calc(1 + 0.06 * var(--t)));
+  transition: transform 0.5s ease;
+}
+.mu-prog-imgwrap::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 58px;
+  height: 58px;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background:
+    #ffffff
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='%23090909'><path d='M8 5v14l11-7z'/></svg>")
+    center / 20px no-repeat;
+  box-shadow: 0 6px 20px rgba(9, 9, 9, 0.28);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.mu-prog-card.is-focus .mu-prog-imgwrap::after {
+  opacity: 1;
+}
+
+/* Title + blurb ---------------------------------------------- */
+.mu-prog-title {
+  font-family: var(--mu-sans, system-ui), sans-serif;
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 600;
+  color: #090909;
+}
+.mu-prog-title span {
+  font-weight: 700;
+}
+.mu-prog-desc {
+  font-family: var(--mu-sans, system-ui), sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #525252;
+}
+
+/* Fact grid -------------------------------------------------- */
+.mu-prog-info {
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+  padding-top: 18px;
+  border-top: 1px solid #ededed;
+}
+.mu-prog-flexi {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.mu-prog-flexi .ic {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #f4f4f5;
+  color: #090909;
+}
+.mu-prog-flexi .lbl {
+  font-family: var(--mu-sans, system-ui), sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #a3a3a3;
+}
+.mu-prog-flexi .val {
+  font-family: var(--mu-sans, system-ui), sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #262626;
+  margin-top: 2px;
+}
+.mu-prog-flexi .val span {
+  font-weight: 500;
+  color: #737373;
+}
+
+@media (max-width: 640px) {
+  .mu-prog-card {
+    width: 300px;
+    padding: 14px;
+    gap: 16px;
+  }
+  .mu-prog-title {
+    font-size: 19px;
+  }
+  .mu-prog-info {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   SIX REASONS — port of MU .LearnApply sticky-stack deck.
+   Cards pin (position: sticky) each a little lower than the last so their
+   header bars form a peeking stack; the active card opens below its bar.
+   ============================================================ */
+
+/* Gradient text used for the heading accent + inline emphasis. */
+.mu-gradient-text {
+  background: var(--mu-gradient, linear-gradient(90deg, #39b6d8 6.41%, #f7d344 51.47%, #e38330 96.52%));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.mu-stack {
+  /* --peek: how far each stacked bar shows below the one above it.
+     --base: where the first card pins under the sticky site chrome. */
+  --peek: 76px;
+  --base: 88px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.mu-stack-card {
+  position: sticky;
+  top: calc(var(--base) + var(--i) * var(--peek));
+  border-radius: 22px;
+  border: 1px solid #e5e5e5;
+  background: #ffffff;
+  box-shadow: 0 18px 50px rgba(9, 9, 9, 0.08);
+  overflow: hidden;
+}
+
+/* Header bar — the part that stays visible in the stacked deck. */
+.mu-stack-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 26px;
+  min-height: var(--peek);
+  border-bottom: 1px solid #ededed;
+  background: #ffffff;
+}
+.mu-stack-num {
+  font-family: var(--mu-sans, system-ui), sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #a3a3a3;
+  font-variant-numeric: tabular-nums;
+}
+.mu-stack-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--mu-sans, system-ui), sans-serif;
+  font-size: clamp(17px, 2.4vw, 22px);
+  font-weight: 700;
+  color: #090909;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mu-stack-tag {
+  flex: 0 0 auto;
+  font-family: var(--mu-sans, system-ui), sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #6d5ef0;
+  background: #efedfd;
+  border-radius: 999px;
+  padding: 6px 12px;
+}
+
+/* Body — the opened-up content of the active card. */
+.mu-stack-body {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 32px;
+  padding: 28px 26px 32px;
+}
+.mu-stack-left {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  aspect-ratio: 620 / 460;
+  background: #ededed;
+}
+.mu-stack-left img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mu-stack-left.contain {
+  background: #ffffff;
+  border: 1px solid #ededed;
+}
+.mu-stack-left.contain img {
+  object-fit: contain;
+  padding: 32px;
+}
+/* Play badge on the image, MU-style. */
+.mu-stack-left::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 58px;
+  height: 58px;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background:
+    #ffffff
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='%23090909'><path d='M8 5v14l11-7z'/></svg>")
+    center / 20px no-repeat;
+  box-shadow: 0 6px 20px rgba(9, 9, 9, 0.28);
+}
+.mu-stack-left.contain::after {
+  display: none;
+}
+
+.mu-stack-right {
+  display: flex;
+  flex-direction: column;
+}
+.mu-stack-head {
+  font-family: var(--mu-sans, system-ui), sans-serif;
+  font-size: clamp(20px, 2.6vw, 27px);
+  line-height: 1.2;
+  font-weight: 600;
+  color: #090909;
+}
+.mu-stack-head .ac {
+  font-weight: 700;
+}
+.mu-stack-sub {
+  margin-top: 14px;
+  font-family: var(--mu-sans, system-ui), sans-serif;
+  font-size: 15px;
+  line-height: 1.62;
+  color: #525252;
+}
+.mu-stack-sub .g {
+  color: #090909;
+  font-weight: 600;
+}
+
+.mu-stack-stats {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.mu-stat-w {
+  border: 1px solid #ededed;
+  border-radius: 14px;
+  background: #fafafa;
+  padding: 14px 14px 8px;
+}
+.mu-stat-w .wl {
+  font-family: var(--mu-sans, system-ui), sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #a3a3a3;
+}
+.mu-stat-w .wv {
+  font-family: var(--mu-sans, system-ui), sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #090909;
+  margin-top: 2px;
+}
+.mu-stat-w svg {
+  display: block;
+  width: 100%;
+  height: 44px;
+  margin-top: 6px;
+}
+
+.mu-stack-cta {
+  margin-top: 24px;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mu-sans, system-ui), sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  background: #090909;
+  border-radius: 999px;
+  padding: 12px 22px;
+  transition: background 0.2s;
+}
+.mu-stack-cta:hover {
+  background: #262626;
+}
+
+/* Trailing spacer so the final card can settle into the deck. */
+.mu-stack-tail {
+  height: 40vh;
+}
+
+@media (max-width: 900px) {
+  .mu-stack {
+    --peek: 68px;
+    --base: 72px;
+  }
+  .mu-stack-body {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+}
+@media (max-width: 640px) {
+  .mu-stack-bar {
+    padding: 18px 18px;
+    gap: 12px;
+  }
+  .mu-stack-tag {
+    display: none;
+  }
+  .mu-stack-body {
+    padding: 22px 18px 26px;
+  }
+  .mu-stack-stats {
+    grid-template-columns: 1fr;
+  }
+}
