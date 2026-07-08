@@ -19,6 +19,55 @@ export const admissionSupport = [
   "+91 9693822512",
 ];
 
+// --- Event tracks ---------------------------------------------------------
+// The events page groups the same line-up into three tracks. Each activity is
+// bucketed by keyword-matching its category (falling back to its name).
+export type Track = "learn" | "play" | "celebrate";
+
+export const TRACKS: {
+  key: Track;
+  label: string;
+  tagline: string;
+}[] = [
+  { key: "learn", label: "Learn", tagline: "Hackathons, coding & tech showdowns." },
+  { key: "play", label: "Play", tagline: "Robotics, gaming & arena battles." },
+  { key: "celebrate", label: "Celebrate", tagline: "Music, culture & the main stage." },
+];
+
+const TRACK_KEYWORDS: Record<Track, string[]> = {
+  learn: [
+    "tech", "cod", "hack", "business", "pitch", "startup", "data", "ai",
+    "cyber", "design", "ux", "ui", "seminar", "workshop", "quiz", "debate",
+    "paper", "ideathon", "innovation", "web", "app",
+  ],
+  play: [
+    "game", "gaming", "esport", "robot", "robo", "sport", "race", "drone",
+    "arena", "battle", "clash", "war", "soccer", "cricket", "football",
+    "valorant", "bgmi", "line follower",
+  ],
+  celebrate: [
+    "cultural", "culture", "music", "band", "dance", "art", "fashion", "sing",
+    "concert", "dj", "celebrat", "drama", "theatre", "theater", "fun", "nukkad",
+    "photography", "open mic",
+  ],
+};
+
+// Bucket an activity into a track. Category is the primary signal; the name is
+// a fallback. Unmatched activities default to "play".
+export function trackOf(activity: {
+  category?: string | null;
+  name?: string | null;
+}): Track {
+  const hay = `${activity.category ?? ""} ${activity.name ?? ""}`.toLowerCase();
+  // Celebrate is checked first so e.g. "Battle of Bands" (band ✓) isn't
+  // captured by "battle" in the Play list.
+  const order: Track[] = ["celebrate", "learn", "play"];
+  for (const t of order) {
+    if (TRACK_KEYWORDS[t].some((k) => hay.includes(k))) return t;
+  }
+  return "play";
+}
+
 export type FestEvent = {
   slug: string;
   title: string;

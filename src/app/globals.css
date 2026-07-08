@@ -159,6 +159,50 @@ body {
   animation: sweep 1.4s ease-in-out infinite;
 }
 
+/* Horizontal poster-wall marquee (events intro) */
+@keyframes marquee-x {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee-x {
+  animation: marquee-x linear infinite;
+}
+
+/* --- Arcade outro: 3D rotating wheels + floating tokens --- */
+@keyframes spin-y {
+  to {
+    transform: rotateY(360deg);
+  }
+}
+@keyframes spin-y-rev {
+  to {
+    transform: rotateY(-360deg);
+  }
+}
+.animate-spin-y {
+  transform-style: preserve-3d;
+  animation: spin-y 20s linear infinite;
+}
+.animate-spin-y-rev {
+  transform-style: preserve-3d;
+  animation: spin-y-rev 15s linear infinite;
+}
+
+/* Gentle bob for floating light particles */
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-16px);
+  }
+}
+.animate-float {
+  animation: float-y 5s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-glow,
   .spin-cw,
@@ -167,7 +211,11 @@ body {
   .animate-flicker,
   .animate-sweep,
   .animate-breathe,
-  .animate-rise {
+  .animate-rise,
+  .animate-marquee-x,
+  .animate-spin-y,
+  .animate-spin-y-rev,
+  .animate-float {
     animation: none;
   }
 }

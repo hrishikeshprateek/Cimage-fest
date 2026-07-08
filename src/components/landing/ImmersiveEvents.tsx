@@ -1,11 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { fest } from "@/lib/data";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { fest, TRACKS, trackOf, type Track } from "@/lib/data";
 import { getFestActivities, type FestActivity } from "@/lib/festApi";
 import GetPassButton from "./GetPassButton";
 import ContactButton from "./ContactButton";
+import OrbitStage from "./OrbitStage";
+
+type Filter = Track | "all";
+
+const isTrack = (v: string | null): v is Track =>
+  v === "learn" || v === "play" || v === "celebrate";
 
 // Gradient fallbacks used when an event has no banner image yet.
 const ACCENTS = [
@@ -77,6 +83,32 @@ export default function ImmersiveEvents() {
   const panels = useRef<(HTMLElement | null)[]>([]);
   const [active, setActive] = useState(0);
   const [list, setList] = useState<FestActivity[] | null>(null);
+  // Initial track comes from the ?track= query param (deep-linked from the
+  // top-bar Learn / Play / Celebrate links). Read lazily on the client; the
+  // page shows a loader until the fetch resolves, so this never affects the
+  // server-rendered markup.
+  const [filter, setFilter] = useState<Filter>(() => {
+    if (typeof window === "undefined") return "all";
+    const t = new URLSearchParams(window.location.search).get("track");
+    return isTrack(t) ? t : "all";
+  });
+
+  // The line-up narrowed to the current track (or everything for "all").
+  const events = useMemo(
+    () =>
+      list
+        ? list.filter((a) => filter === "all" || trackOf(a) === filter)
+        : [],
+    [list, filter],
+  );
+
+  const chooseFilter = (next: Filter) => {
+    setFilter(next);
+    setActive(0);
+    scroller.current?.scrollTo({ top: 0 });
+    const url = next === "all" ? "/events" : `/events?track=${next}`;
+    window.history.replaceState(null, "", url);
+  };
 
   // Fetch the fest's activity cards. No fallback — an empty/failed result
   // renders the empty state below.
@@ -94,7 +126,7 @@ export default function ImmersiveEvents() {
     };
   }, []);
 
-  // Track which panel is centered — re-attaches once the list renders.
+  // Track which panel is centered — re-attaches when the visible set changes.
   useEffect(() => {
     if (!list) return;
     const root = scroller.current;
@@ -111,7 +143,7 @@ export default function ImmersiveEvents() {
     );
     panels.current.forEach((p) => p && observer.observe(p));
     return () => observer.disconnect();
-  }, [list]);
+  }, [list, events]);
 
   const scrollTo = (i: number) =>
     panels.current[i]?.scrollIntoView({ behavior: "smooth" });
@@ -149,8 +181,8 @@ export default function ImmersiveEvents() {
     );
   }
 
-  const events = list;
   const total = events.length + 2; // intro + events + outro
+  const activeTrack = TRACKS.find((t) => t.key === filter);
 
   return (
     <>
@@ -176,30 +208,60 @@ export default function ImmersiveEvents() {
 
           {/* Foreground */}
           <div className="relative z-10 flex flex-col items-center">
-            <h1 className="text-6xl font-black leading-[0.85] tracking-[-0.03em] text-white drop-shadow-[0_6px_34px_rgba(0,0,0,0.9)] sm:text-8xl md:text-[9.5rem]">
-              EVENTS
+            <h1 className="text-6xl font-black uppercase leading-[0.85] tracking-[-0.03em] text-white drop-shadow-[0_6px_34px_rgba(0,0,0,0.9)] sm:text-8xl md:text-[9.5rem]">
+              {activeTrack ? activeTrack.label : "Events"}
             </h1>
             <p className="mt-7 max-w-sm text-balance text-base leading-relaxed text-white/80 drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] sm:max-w-md">
-              Every competition — one immersive reel.
+              {activeTrack ? activeTrack.tagline : "Every competition — one immersive reel."}
             </p>
-            <button
-              type="button"
-              onClick={() => scrollTo(1)}
-              className="group mt-8 inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-bold uppercase tracking-wider text-[#0a0716] shadow-xl transition-all hover:gap-3.5"
-            >
-              Start Exploring
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
-            </button>
+
+            {/* Track selector */}
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-2 rounded-full border border-white/10 bg-black/40 p-1.5 backdrop-blur-md">
+              {[{ key: "all" as const, label: "All" }, ...TRACKS].map((t) => {
+                const selected = filter === t.key;
+                return (
+                  <button
+                    key={t.key}
+                    type="button"
+                    onClick={() => chooseFilter(t.key)}
+                    className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition-colors sm:text-sm ${
+                      selected
+                        ? "bg-gradient-to-r from-cyan-500 to-violet-600 text-white shadow-lg shadow-violet-600/25"
+                        : "text-white/60 hover:text-white"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {events.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => scrollTo(1)}
+                className="group mt-8 inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-bold uppercase tracking-wider text-[#0a0716] shadow-xl transition-all hover:gap-3.5"
+              >
+                Start Exploring
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              </button>
+            ) : (
+              <p className="mt-8 max-w-xs text-balance text-sm text-white/55">
+                No events in this track yet — try another.
+              </p>
+            )}
           </div>
 
           {/* Scroll cue */}
-          <div className="pointer-events-none absolute bottom-6 left-1/2 z-10 -translate-x-1/2">
-            <span className="flex h-9 w-5 items-start justify-center rounded-full border border-white/25 p-1">
-              <span className="h-2 w-1 animate-bounce rounded-full bg-white/60" />
-            </span>
-          </div>
+          {events.length > 0 && (
+            <div className="pointer-events-none absolute bottom-6 left-1/2 z-10 -translate-x-1/2">
+              <span className="flex h-9 w-5 items-start justify-center rounded-full border border-white/25 p-1">
+                <span className="h-2 w-1 animate-bounce rounded-full bg-white/60" />
+              </span>
+            </div>
+          )}
         </section>
 
         {/* Event panels */}
@@ -318,34 +380,63 @@ export default function ImmersiveEvents() {
           );
         })}
 
-        {/* Outro */}
+        {/* Outro — orbital stage */}
         <section
           data-index={total - 1}
           ref={(el) => {
             panels.current[total - 1] = el;
           }}
-          className="relative flex h-dvh snap-start flex-col items-center justify-center px-6 text-center"
+          className="relative flex h-dvh snap-start flex-col items-center justify-center overflow-hidden px-6 text-center"
         >
-          <div className="pointer-events-none absolute left-1/2 top-1/2 h-[30rem] w-[30rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-600/20 blur-[130px]" />
-          <p className="relative font-mono text-xs uppercase tracking-[0.4em] text-cyan">
-            That&apos;s the line-up
-          </p>
-          <h2 className="relative mt-4 max-w-2xl text-4xl font-black tracking-tight sm:text-6xl">
-            Ready to <span className="text-gradient">enter the arena?</span>
-          </h2>
-          <div className="relative mt-10 flex flex-col gap-3 sm:flex-row">
-            <GetPassButton
-              slug={fest.passSlug}
-              label="Register Now"
-              className="rounded-full bg-gradient-to-r from-indigo-400 to-violet-400 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-105"
+          {/* Ambient backdrop */}
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_42%,#0d0722,#070214_70%)]" />
+          <div className="pointer-events-none absolute inset-0 grid-backdrop opacity-20" />
+          <div className="pointer-events-none absolute left-1/2 top-[42%] h-[36rem] w-[36rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-700/20 blur-[140px]" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#05010f]/60 via-transparent to-[#05010f]" />
+
+          {/* Drifting light particles */}
+          {[
+            { c: "left-[12%] top-[24%]", d: "0s", cls: "h-1.5 w-1.5 bg-cyan-300/70" },
+            { c: "right-[14%] top-[30%]", d: "1.1s", cls: "h-1 w-1 bg-fuchsia-300/60" },
+            { c: "left-[18%] bottom-[26%]", d: "1.7s", cls: "h-1 w-1 bg-violet-300/60" },
+            { c: "right-[16%] bottom-[30%]", d: "0.6s", cls: "h-1.5 w-1.5 bg-cyan-300/60" },
+            { c: "left-[46%] top-[16%]", d: "2.2s", cls: "h-1 w-1 bg-white/50" },
+          ].map(({ c, d, cls }, i) => (
+            <span
+              key={i}
+              className={`animate-float pointer-events-none absolute rounded-full blur-[0.5px] ${c} ${cls}`}
+              style={{ animationDelay: d }}
             />
-            <Link
-              href="/"
-              className="rounded-full border border-white/20 bg-white/5 px-8 py-3.5 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10"
-            >
-              Back to Home
-            </Link>
-            <ContactButton className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-8 py-3.5 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10" />
+          ))}
+
+          <div className="relative z-10 flex flex-col items-center">
+            {/* 3D orbital centerpiece */}
+            <OrbitStage />
+
+            <h2 className="mt-4 max-w-2xl text-4xl font-black leading-[0.95] tracking-tight drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)] sm:text-6xl">
+              Ready to <span className="text-gradient">enter the arena?</span>
+            </h2>
+            <p className="mt-5 max-w-md text-balance text-base leading-relaxed text-white/65 drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
+              Grab your pass now.
+            </p>
+
+            <div className="mt-9 flex w-full max-w-md flex-col items-center gap-3 sm:w-auto sm:flex-row sm:justify-center">
+              <GetPassButton
+                slug={fest.passSlug}
+                label="Register Now"
+                className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-8 py-3.5 text-sm font-semibold uppercase tracking-[0.08em] text-white shadow-lg shadow-violet-600/30 ring-1 ring-white/15 transition hover:brightness-110 sm:w-auto"
+              />
+              <Link
+                href="/"
+                className="w-full rounded-xl border border-white/20 bg-white/5 px-8 py-3.5 text-sm font-semibold text-white/90 backdrop-blur-sm transition-colors hover:bg-white/10 sm:w-auto"
+              >
+                Back to Home
+              </Link>
+            </div>
+
+            {/* Secondary, de-emphasised help link */}
+            <ContactButton className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-white/55 transition-colors hover:text-cyan" />
           </div>
         </section>
       </div>

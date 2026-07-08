@@ -59,14 +59,7 @@ export default function ContactDialog({
       <div className="animate-rise relative w-full max-w-sm overflow-hidden rounded-2xl border border-white/10 bg-[#0e0a1a]/95 shadow-2xl ring-1 ring-white/10">
         {/* Header */}
         <div className="flex items-start justify-between gap-4 border-b border-white/10 bg-gradient-to-r from-cyan-500/15 to-violet-600/15 px-6 py-5">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-cyan">
-              Need help?
-            </p>
-            <h2 className="mt-1 text-xl font-bold tracking-tight text-white">
-              Admission Support
-            </h2>
-          </div>
+          <h2 className="font-sans text-xl font-medium text-white">Support</h2>
           <button
             type="button"
             onClick={onClose}
