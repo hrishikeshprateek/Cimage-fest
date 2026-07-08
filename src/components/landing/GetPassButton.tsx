@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { fest } from "@/lib/data";
 import {
   BOARD_OPTIONS,
@@ -19,6 +20,8 @@ type Phase =
   | { kind: "form"; event: FestEventInfo }
   | { kind: "done"; pass: RegisterSuccess["pass"] };
 
+const COURSE_OPTIONS = ["BCA", "BBA", "BCom(P)", "MCA", "MBA", "BTech", "BSC"];
+
 const EMPTY_FORM = {
   name: "",
   phone: "",
@@ -30,7 +33,7 @@ const EMPTY_FORM = {
 };
 
 const DEFAULT_TRIGGER_CLS =
-  "shrink-0 rounded-full bg-gradient-to-r from-indigo-400 to-violet-400 pl-[1.15rem] pr-4 py-2 font-mono text-sm font-bold uppercase tracking-[0.12em] text-white shadow-md shadow-indigo-500/20 ring-1 ring-white/10 transition hover:brightness-105";
+  "shrink-0 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 pl-[1.15rem] pr-4 py-2.5 font-sans text-sm font-semibold uppercase tracking-[0.12em] text-white shadow-lg shadow-violet-600/30 ring-1 ring-white/15 transition hover:brightness-110";
 
 export default function GetPassButton({
   slug = fest.passSlug,
@@ -141,7 +144,7 @@ export default function GetPassButton({
         {label}
       </button>
 
-      {open && (
+      {open && createPortal(
         <div
           className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto px-6 pt-10 pb-[calc(7rem+env(safe-area-inset-bottom))] md:pb-10"
           role="dialog"
@@ -188,10 +191,6 @@ export default function GetPassButton({
                 subtitle={
                   <div className="inline-flex items-center gap-2 rounded-md border border-white/10 bg-black/25 px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-white/60">
                     <span className="truncate">{phase.event.name}</span>
-                    <span className="text-white/25">·</span>
-                    <span className="truncate text-white/45">
-                      {phase.event.venue}
-                    </span>
                     {phase.event.requires_payment && (
                       <>
                         <span className="text-white/25">·</span>
@@ -218,8 +217,19 @@ export default function GetPassButton({
                   </SelectField>
 
                   <div className="flex gap-3">
-                    <Field label="Course" value={form.course} onChange={setField("course")} />
-                    <Field label="City" value={form.city} onChange={setField("city")} />
+                    <div className="flex-1">
+                      <SelectField label="Course Interested" value={form.course} onChange={setField("course")}>
+                        <option value="" className="bg-[#0e0a1a]">Select course</option>
+                        {COURSE_OPTIONS.map((c) => (
+                          <option key={c} value={c} className="bg-[#0e0a1a]">
+                            {c}
+                          </option>
+                        ))}
+                      </SelectField>
+                    </div>
+                    <div className="flex-1">
+                      <Field label="City" value={form.city} onChange={setField("city")} />
+                    </div>
                   </div>
                   <Field label="School / College" value={form.school_name} onChange={setField("school_name")} />
 
@@ -291,7 +301,8 @@ export default function GetPassButton({
               </TicketCard>
             )}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );

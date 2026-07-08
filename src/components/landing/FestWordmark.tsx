@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { fest } from "@/lib/data";
+import GetPassButton from "./GetPassButton";
 
 export default function FestWordmark() {
   return (
@@ -28,9 +29,9 @@ export default function FestWordmark() {
         </span>
       </div>
 
-      <p className="mt-4 inline-block rounded-full bg-black/60 px-4 pl-[calc(1rem+0.28em)] py-1 font-mono text-[10px] uppercase tracking-[0.28em] text-magenta backdrop-blur-sm sm:text-xs">
-        4 Weekends · 1 Vibe
-      </p>
+      <div className="mt-6">
+        <GetPassButton className="rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-16 py-3 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white shadow-lg shadow-violet-600/30 ring-1 ring-white/15 transition hover:brightness-110 sm:px-24" />
+      </div>
     </div>
   );
 }

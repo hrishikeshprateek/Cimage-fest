@@ -27,7 +27,7 @@ export default function SideNav() {
                 className="group flex flex-col items-center gap-1.5 text-white/70 transition-colors hover:text-cyan"
               >
                 <Icon className="h-6 w-6 drop-shadow-[0_0_6px_rgba(34,211,238,0.4)]" />
-                <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.15em]">
+                <span className="font-sans text-[11px] font-medium tracking-tight">
                   {label}
                 </span>
               </a>
@@ -46,7 +46,7 @@ export default function SideNav() {
                 className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-white/70 transition-colors active:text-cyan"
               >
                 <Icon className="h-5 w-5 drop-shadow-[0_0_6px_rgba(34,211,238,0.4)]" />
-                <span className="font-mono text-[8px] font-semibold uppercase tracking-[0.1em]">
+                <span className="font-sans text-[10px] font-medium tracking-tight">
                   {label}
                 </span>
               </a>
