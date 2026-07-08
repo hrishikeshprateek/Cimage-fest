@@ -11,6 +11,14 @@ export const fest = {
   passSlug: process.env.NEXT_PUBLIC_FEST_PASS_SLUG ?? "weekend-fest",
 };
 
+// Admission / helpdesk numbers shown in the Contact popup.
+export const admissionSupport = [
+  "+91 7250767676",
+  "+91 8294040444",
+  "+91 9304721320",
+  "+91 9693822512",
+];
+
 export type FestEvent = {
   slug: string;
   title: string;

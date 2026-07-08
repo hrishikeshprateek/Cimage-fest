@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { fest } from "@/lib/data";
 import { getFestActivities, type FestActivity } from "@/lib/festApi";
 import GetPassButton from "./GetPassButton";
+import ContactButton from "./ContactButton";
 
 // Gradient fallbacks used when an event has no banner image yet.
 const ACCENTS = [
@@ -16,6 +17,60 @@ const ACCENTS = [
   "from-indigo-500 to-violet-500",
 ];
 const accentOf = (i: number) => ACCENTS[i % ACCENTS.length];
+
+// A single event "poster" tile for the intro wall — image only, no text.
+function PosterCard({ event, accent }: { event: FestActivity; accent: string }) {
+  return (
+    <div className="h-32 w-56 shrink-0 overflow-hidden rounded-2xl border border-white/10 shadow-xl ring-1 ring-black/20">
+      {event.background_image_url ? (
+        <div
+          className="h-full w-full bg-cover bg-center"
+          style={{ backgroundImage: `url(${event.background_image_url})` }}
+        />
+      ) : (
+        <div className={`h-full w-full bg-gradient-to-br ${accent}`} />
+      )}
+    </div>
+  );
+}
+
+// Tilted, auto-scrolling wall of event posters — a cinematic backdrop that's
+// built from the real line-up.
+function PosterWall({ events }: { events: FestActivity[] }) {
+  // Very slow drift, each row a bit different.
+  const durations = [140, 175, 155, 165];
+  const rows = [0, 1, 2, 3].map((r) => {
+    let cards = events.filter((_, i) => i % 4 === r);
+    if (cards.length < 5) cards = events; // small line-up → reuse the full set
+    // rotate each row so they don't line up identically
+    return [...cards.slice(r), ...cards.slice(0, r)];
+  });
+
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden [perspective:1200px]">
+      <div className="absolute inset-0 flex flex-col justify-center gap-3 [transform:rotateX(20deg)_rotateZ(-6deg)_scale(1.4)]">
+        {rows.map((cards, r) => (
+          <div
+            key={r}
+            className="animate-marquee-x flex w-max gap-3"
+            style={{
+              animationDuration: `${durations[r]}s`,
+              animationDirection: r % 2 ? "reverse" : "normal",
+            }}
+          >
+            {[...cards, ...cards].map((ev, i) => (
+              <PosterCard
+                key={`${r}-${i}`}
+                event={ev}
+                accent={accentOf(r * 2 + i)}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function ImmersiveEvents() {
   const scroller = useRef<HTMLDivElement>(null);
@@ -103,39 +158,48 @@ export default function ImmersiveEvents() {
         ref={scroller}
         className="no-scrollbar h-dvh snap-y snap-mandatory overflow-y-auto scroll-smooth"
       >
-        {/* Intro */}
+        {/* Intro — tilted, moving wall of the real line-up */}
         <section
           data-index={0}
           ref={(el) => {
             panels.current[0] = el;
           }}
-          className="relative flex h-dvh snap-start flex-col items-center justify-center px-6 text-center"
+          className="relative flex h-dvh snap-start flex-col items-center justify-center overflow-hidden px-6 text-center"
         >
-          <div className="pointer-events-none absolute inset-0 grid-backdrop opacity-40" />
-          <div className="pointer-events-none absolute left-1/2 top-1/2 h-[36rem] w-[36rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-700/25 blur-[130px]" />
-          <p className="relative font-mono text-xs uppercase tracking-[0.4em] text-cyan">
-            {events.length} Competitions · {fest.dates}
-          </p>
-          <h1 className="relative mt-4 text-6xl font-black tracking-tighter sm:text-8xl md:text-9xl">
-            <span className="text-gradient">EVENTS</span>
-          </h1>
-          <p className="relative mt-5 max-w-xl text-balance text-white/60">
-            Scroll to journey through every competition. Combat robots,
-            hackathons, esports arenas and after-dark stages — one immersive
-            reel.
-          </p>
-          <button
-            type="button"
-            onClick={() => scrollTo(1)}
-            className="relative mt-12 flex flex-col items-center gap-2 text-white/50 transition-colors hover:text-white"
-          >
-            <span className="font-mono text-[10px] uppercase tracking-[0.3em]">
-              Begin
-            </span>
+          {/* Poster wall backdrop */}
+          <PosterWall events={events} />
+          {/* Lighter readability layers — keep the posters visible, darken just
+              enough behind the title and fade into the next panel. */}
+          <div className="pointer-events-none absolute inset-0 bg-[#05010f]/25" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_58%_52%_at_50%_46%,rgba(5,1,15,0.8),rgba(5,1,15,0.28)_55%,transparent_82%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#05010f]" />
+
+          {/* Foreground */}
+          <div className="relative z-10 flex flex-col items-center">
+            <h1 className="text-6xl font-black leading-[0.85] tracking-[-0.03em] text-white drop-shadow-[0_6px_34px_rgba(0,0,0,0.9)] sm:text-8xl md:text-[9.5rem]">
+              EVENTS
+            </h1>
+            <p className="mt-7 max-w-sm text-balance text-base leading-relaxed text-white/80 drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] sm:max-w-md">
+              Every competition — one immersive reel.
+            </p>
+            <button
+              type="button"
+              onClick={() => scrollTo(1)}
+              className="group mt-8 inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-bold uppercase tracking-wider text-[#0a0716] shadow-xl transition-all hover:gap-3.5"
+            >
+              Start Exploring
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Scroll cue */}
+          <div className="pointer-events-none absolute bottom-6 left-1/2 z-10 -translate-x-1/2">
             <span className="flex h-9 w-5 items-start justify-center rounded-full border border-white/25 p-1">
               <span className="h-2 w-1 animate-bounce rounded-full bg-white/60" />
             </span>
-          </button>
+          </div>
         </section>
 
         {/* Event panels */}
@@ -151,28 +215,30 @@ export default function ImmersiveEvents() {
               ref={(el) => {
                 panels.current[index] = el;
               }}
-              className="relative flex h-dvh snap-start items-center overflow-hidden px-6 sm:px-16 md:px-24"
+              className="relative flex h-dvh snap-start items-center overflow-hidden pl-8 pr-6 sm:pl-20 sm:pr-16 md:pl-32 md:pr-24"
             >
-              {/* Background: banner image, or gradient fallback */}
+              {/* Background: banner image, or a rich gradient fallback */}
               {hasImage ? (
                 <>
                   <div
                     className="absolute inset-0 bg-cover bg-center"
                     style={{ backgroundImage: `url(${event.background_image_url})` }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#05010f] via-[#05010f]/85 to-[#05010f]/30" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#05010f] via-transparent to-[#05010f]/40" />
+                  {/* Dark on the left (text) → clear on the right (image). Slightly
+                      heavier on mobile where the text overlaps the image. */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#05010f] via-[#05010f]/80 to-[#05010f]/25 sm:via-[#05010f]/55 sm:to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#05010f] via-transparent to-transparent" />
                 </>
               ) : (
                 <>
+                  <div className="absolute inset-0 bg-[#0a0614]" />
+                  <div className="pointer-events-none absolute inset-0 grid-backdrop opacity-30" />
                   <div
-                    className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${accent} opacity-[0.14]`}
-                  />
-                  <div
-                    className={`pointer-events-none absolute -right-32 top-1/4 h-[34rem] w-[34rem] rounded-full bg-gradient-to-br ${accent} opacity-25 blur-[120px] transition-transform duration-1000 ${
-                      isActive ? "translate-x-0" : "translate-x-24"
+                    className={`pointer-events-none absolute right-0 top-0 h-full w-2/3 bg-gradient-to-l ${accent} opacity-40 blur-[90px] transition-transform duration-1000 ${
+                      isActive ? "translate-x-0" : "translate-x-16"
                     }`}
                   />
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#0a0614] via-[#0a0614]/40 to-transparent" />
                 </>
               )}
 
@@ -204,11 +270,11 @@ export default function ImmersiveEvents() {
                   </div>
                 )}
 
-                <h2 className="text-5xl font-black tracking-tighter sm:text-7xl">
+                <h2 className="text-5xl font-black tracking-tighter drop-shadow-[0_2px_16px_rgba(0,0,0,0.85)] sm:text-7xl">
                   {event.name}
                 </h2>
                 {event.description && (
-                  <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/70">
+                  <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/80 drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
                     {event.description}
                   </p>
                 )}
@@ -279,6 +345,7 @@ export default function ImmersiveEvents() {
             >
               Back to Home
             </Link>
+            <ContactButton className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-8 py-3.5 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10" />
           </div>
         </section>
       </div>
