@@ -15,7 +15,7 @@ const items = [
   { label: "Events", href: "/events", Icon: GridIcon },
   { label: "Pass", href: "/pass", Icon: TicketIcon },
   { label: "Contact", action: "contact" as const, Icon: PhoneIcon },
-  { label: "About Us", href: "#about", Icon: PeopleIcon },
+  { label: "About Us", href: "/about", Icon: PeopleIcon },
 ];
 
 export default function SideNav() {
