@@ -8,9 +8,10 @@ export const inputCls =
 export const labelCls =
   "mb-1.5 block text-[11px] font-medium uppercase tracking-[0.13em] text-white/55";
 
-// Soothing indigo → violet, soft (not a harsh neon).
+// Techy chamfered primary button (flat, no gradient) — shared by the pass flow
+// and the registration dialog.
 export const submitCls =
-  "flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-indigo-400 to-violet-400 py-3.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60";
+  "btn-tech btn-tech-primary w-full disabled:cursor-not-allowed disabled:opacity-60";
 
 // A physical-ticket card: a logo header stub, a perforated tear line with
 // punched-hole notches on each edge, and a body for the content/form.

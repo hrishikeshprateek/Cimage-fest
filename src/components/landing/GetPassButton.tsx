@@ -32,8 +32,7 @@ const EMPTY_FORM = {
   city: "",
 };
 
-const DEFAULT_TRIGGER_CLS =
-  "shrink-0 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 pl-[1.15rem] pr-4 py-2.5 font-sans text-sm font-semibold uppercase tracking-[0.12em] text-white shadow-lg shadow-violet-600/30 ring-1 ring-white/15 transition hover:brightness-110";
+const DEFAULT_TRIGGER_CLS = "btn-tech btn-tech-primary shrink-0";
 
 export default function GetPassButton({
   slug = fest.passSlug,

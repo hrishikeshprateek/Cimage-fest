@@ -30,7 +30,7 @@ export default function FestWordmark() {
       </div>
 
       <div className="mt-6">
-        <GetPassButton className="rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-16 py-3 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white shadow-lg shadow-violet-600/30 ring-1 ring-white/15 transition hover:brightness-110 sm:px-24" />
+        <GetPassButton className="btn-tech btn-tech-primary px-16 sm:px-24" />
       </div>
     </div>
   );

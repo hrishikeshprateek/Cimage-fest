@@ -33,6 +33,65 @@ body {
   color: transparent;
 }
 
+/* ============================================================
+   Techy chamfered buttons (fest theme). Flat fills — no gradients —
+   with two cut corners (top-right + bottom-left) for a HUD/cyberpunk
+   feel. Glow via drop-shadow (box-shadow gets clipped by clip-path).
+   ============================================================ */
+.btn-tech {
+  --c: 9px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.9rem;
+  border: 0;
+  cursor: pointer;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% 100%,
+    var(--c) 100%,
+    0 calc(100% - var(--c))
+  );
+  transition: filter 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+/* Primary — solid cyan */
+.btn-tech-primary {
+  background: #22d3ee;
+  color: #04121a;
+  filter: drop-shadow(0 4px 14px rgba(34, 211, 238, 0.35));
+}
+.btn-tech-primary:hover {
+  filter: drop-shadow(0 4px 18px rgba(34, 211, 238, 0.55)) brightness(1.06);
+}
+/* Violet variant */
+.btn-tech-violet {
+  background: #8b5cf6;
+  color: #0a0518;
+  filter: drop-shadow(0 4px 14px rgba(139, 92, 246, 0.4));
+}
+.btn-tech-violet:hover {
+  filter: drop-shadow(0 4px 18px rgba(139, 92, 246, 0.6)) brightness(1.06);
+}
+/* Ghost — translucent, for secondary actions */
+.btn-tech-ghost {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+.btn-tech-ghost:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
 /* Hide scrollbar on the immersive scroll-snap container */
 .no-scrollbar {
   scrollbar-width: none;

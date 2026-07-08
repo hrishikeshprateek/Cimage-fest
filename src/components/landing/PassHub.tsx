@@ -32,7 +32,7 @@ export default function PassHub() {
             onClick={() => setTab(key)}
             className={`flex-1 rounded-full py-2 transition-colors ${
               tab === key
-                ? "bg-gradient-to-r from-violet-500 to-cyan-500 text-white"
+                ? "bg-cyan-400 text-[#04121a]"
                 : "text-white/55 hover:text-white"
             }`}
           >

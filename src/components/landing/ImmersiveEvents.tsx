@@ -226,7 +226,7 @@ export default function ImmersiveEvents() {
                     onClick={() => chooseFilter(t.key)}
                     className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition-colors sm:text-sm ${
                       selected
-                        ? "bg-gradient-to-r from-cyan-500 to-violet-600 text-white shadow-lg shadow-violet-600/25"
+                        ? "bg-cyan-400 text-[#04121a] shadow-lg shadow-cyan-500/25"
                         : "text-white/60 hover:text-white"
                     }`}
                   >
@@ -240,7 +240,7 @@ export default function ImmersiveEvents() {
               <button
                 type="button"
                 onClick={() => scrollTo(1)}
-                className="group mt-8 inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-bold uppercase tracking-wider text-[#0a0716] shadow-xl transition-all hover:gap-3.5"
+                className="btn-tech btn-tech-primary group mt-8"
               >
                 Start Exploring
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -372,7 +372,7 @@ export default function ImmersiveEvents() {
                   <GetPassButton
                     slug={event.register_slug}
                     label="Register"
-                    className={`inline-flex rounded-full bg-gradient-to-r ${accent} px-8 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:brightness-110`}
+                    className="btn-tech btn-tech-primary"
                   />
                 </div>
               </div>
@@ -425,11 +425,11 @@ export default function ImmersiveEvents() {
               <GetPassButton
                 slug={fest.passSlug}
                 label="Register Now"
-                className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-8 py-3.5 text-sm font-semibold uppercase tracking-[0.08em] text-white shadow-lg shadow-violet-600/30 ring-1 ring-white/15 transition hover:brightness-110 sm:w-auto"
+                className="btn-tech btn-tech-primary w-full sm:w-auto"
               />
               <Link
                 href="/"
-                className="w-full rounded-xl border border-white/20 bg-white/5 px-8 py-3.5 text-sm font-semibold text-white/90 backdrop-blur-sm transition-colors hover:bg-white/10 sm:w-auto"
+                className="btn-tech btn-tech-ghost w-full sm:w-auto"
               >
                 Back to Home
               </Link>
