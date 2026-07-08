@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import {
   HomeIcon,
   GridIcon,
@@ -18,8 +19,14 @@ const items = [
   { label: "About Us", href: "/about", Icon: PeopleIcon },
 ];
 
+// A link is active when its href matches the current route. "/" only matches
+// exactly; every other href also matches its sub-routes (e.g. /pass/xyz).
+const isActiveHref = (href: string | undefined, pathname: string) =>
+  !!href && (href === "/" ? pathname === "/" : pathname.startsWith(href));
+
 export default function SideNav() {
   const [contactOpen, setContactOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <>
@@ -27,8 +34,10 @@ export default function SideNav() {
       <nav className="fixed left-3 top-1/2 z-30 hidden -translate-y-1/2 md:block">
         <ul className="flex flex-col gap-6 rounded-2xl border border-white/10 bg-black/25 px-3 py-6 backdrop-blur-md">
           {items.map(({ label, href, action, Icon }) => {
-            const cls =
-              "group flex flex-col items-center gap-1.5 text-white/70 transition-colors hover:text-cyan";
+            const active = isActiveHref(href, pathname);
+            const cls = `group flex flex-col items-center gap-1.5 transition-colors ${
+              active ? "text-amber-400" : "text-white/70 hover:text-cyan"
+            }`;
             const inner = (
               <>
                 <Icon className="h-6 w-6 drop-shadow-[0_0_6px_rgba(34,211,238,0.4)]" />
@@ -48,7 +57,11 @@ export default function SideNav() {
                     {inner}
                   </button>
                 ) : (
-                  <a href={href} className={cls}>
+                  <a
+                    href={href}
+                    aria-current={active ? "page" : undefined}
+                    className={cls}
+                  >
                     {inner}
                   </a>
                 )}
@@ -62,8 +75,10 @@ export default function SideNav() {
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#05010f]/85 backdrop-blur-xl md:hidden [padding-bottom:env(safe-area-inset-bottom)]">
         <ul className="flex items-stretch justify-around px-1 py-2">
           {items.map(({ label, href, action, Icon }) => {
-            const cls =
-              "flex flex-col items-center gap-1 rounded-lg py-1.5 text-white/70 transition-colors active:text-cyan";
+            const active = isActiveHref(href, pathname);
+            const cls = `flex flex-col items-center gap-1 rounded-lg py-1.5 transition-colors ${
+              active ? "text-amber-400" : "text-white/70 active:text-cyan"
+            }`;
             const inner = (
               <>
                 <Icon className="h-5 w-5 drop-shadow-[0_0_6px_rgba(34,211,238,0.4)]" />
@@ -83,7 +98,11 @@ export default function SideNav() {
                     {inner}
                   </button>
                 ) : (
-                  <a href={href} className={cls}>
+                  <a
+                    href={href}
+                    aria-current={active ? "page" : undefined}
+                    className={cls}
+                  >
                     {inner}
                   </a>
                 )}
