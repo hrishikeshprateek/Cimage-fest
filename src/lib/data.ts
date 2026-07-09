@@ -4,7 +4,7 @@ export const fest = {
   name: "CIMAGE FEST",
   edition: "2026",
   tagline: "Bihar's Largest Science & Technology Festival",
-  dates: "Jul 18–19, 25–26 · Aug 1–2, 8–9",
+  dates: "Jul 25–26 · Aug 1–2, 8–9",
   venue: "CIMAGE Campus, Patna",
   // Backend slug used by the "Get Pass" registration dialog
   // (GET/POST /api/fest/{passSlug}/…). Override via NEXT_PUBLIC_FEST_PASS_SLUG.
