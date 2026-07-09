@@ -74,10 +74,18 @@ export type PassResolution = {
 
 // Collect DRF-style field validation messages, e.g.
 // { "phone": ["Phone must be 10 digits."], "board": ["…"] } → the strings.
-function collectFieldErrors(obj: Record<string, unknown>): string[] {
+// `includeStrings` picks up plain string values too (used for nested error
+// bags like `details` / `errors`, where a value may be a bare message).
+function collectFieldErrors(
+  obj: Record<string, unknown>,
+  includeStrings = false,
+): string[] {
   const out: string[] = [];
   for (const val of Object.values(obj)) {
-    if (typeof val === "string") continue; // top-level metadata, not a field error
+    if (typeof val === "string") {
+      if (includeStrings && val) out.push(val);
+      continue; // otherwise top-level metadata, not a field error
+    }
     if (Array.isArray(val)) {
       for (const item of val) if (typeof item === "string") out.push(item);
     }
@@ -85,33 +93,47 @@ function collectFieldErrors(obj: Record<string, unknown>): string[] {
   return out;
 }
 
-async function readError(res: Response): Promise<string> {
-  try {
-    const body = (await res.json()) as unknown;
-    if (body && typeof body === "object") {
-      const obj = body as Record<string, unknown>;
+// Turn a parsed error body into the best human message we can find.
+function errorMessageFrom(body: unknown, status: number): string {
+  if (body && typeof body === "object") {
+    const obj = body as Record<string, unknown>;
 
-      // Prefer the specific field message(s) over any generic wrapper text.
-      const fieldMsgs = collectFieldErrors(obj);
-      if (fieldMsgs.length) return fieldMsgs.join(" ");
+    // Prefer the specific field message(s) over any generic wrapper text.
+    const fieldMsgs = collectFieldErrors(obj);
+    if (fieldMsgs.length) return fieldMsgs.join(" ");
 
-      // Some responses nest field errors under `errors` / `data`.
-      for (const key of ["errors", "data"] as const) {
-        const nested = obj[key];
-        if (nested && typeof nested === "object") {
-          const msgs = collectFieldErrors(nested as Record<string, unknown>);
-          if (msgs.length) return msgs.join(" ");
-        }
+    // Nested error bags: `details` / `errors` / `data`.
+    for (const key of ["details", "errors", "data"] as const) {
+      const nested = obj[key];
+      if (nested && typeof nested === "object") {
+        const msgs = collectFieldErrors(nested as Record<string, unknown>, true);
+        if (msgs.length) return msgs.join(" ");
       }
-
-      // Single-message forms.
-      const direct = obj.detail ?? obj.message ?? obj.error;
-      if (typeof direct === "string" && direct) return direct;
     }
-  } catch {
-    // non-JSON body — fall through
+
+    // Single-message forms.
+    const direct = obj.error ?? obj.detail ?? obj.message;
+    if (typeof direct === "string" && direct) return direct;
   }
-  return `Request failed (${res.status})`;
+  return `Request failed (${status})`;
+}
+
+// Read a wrapped API response and return its `data` payload. Throws a friendly
+// Error when the request failed — either by HTTP status OR by the backend's
+// `{ success: false, error, details }` envelope, which can arrive with a 200.
+async function readData<T>(res: Response): Promise<T> {
+  let body: unknown;
+  try {
+    body = await res.json();
+  } catch {
+    throw new Error(`Request failed (${res.status})`);
+  }
+  const obj =
+    body && typeof body === "object" ? (body as Record<string, unknown>) : {};
+  if (!res.ok || obj.success === false) {
+    throw new Error(errorMessageFrom(body, res.status));
+  }
+  return obj.data as T;
 }
 
 // GET /api/fest/{slug}/ — event details for the registration page.
@@ -122,9 +144,7 @@ export async function getFestEvent(slug: string): Promise<FestEventInfo | null> 
     cache: "no-store",
   });
   if (res.status === 404) return null;
-  if (!res.ok) throw new Error(await readError(res));
-  const json = (await res.json()) as { data: FestEventInfo };
-  return json.data;
+  return readData<FestEventInfo>(res);
 }
 
 // Activity card shown on the website for a fest.
@@ -153,9 +173,7 @@ export async function getFestActivities(
     headers: { Accept: "application/json" },
     cache: "no-store",
   });
-  if (!res.ok) throw new Error(await readError(res));
-  const json = (await res.json()) as { data: FestActivity[] };
-  return json.data;
+  return readData<FestActivity[]>(res);
 }
 
 // Build the fetch init for register/claim from a RegisterPayload: multipart
@@ -200,10 +218,10 @@ export async function registerForFest(
     `${FEST_API_BASE}/${slug}/register/`,
     buildRegisterInit(payload),
   );
-  if (!res.ok) throw new Error(await readError(res));
-  // Backend wraps the payload in { success, message, status, data: {…} }.
-  const json = (await res.json()) as { data: RegisterResult };
-  return json.data;
+  // Backend wraps the payload in { success, message, status, data: {…} } and
+  // signals failures (e.g. duplicate phone) with success:false — which may even
+  // arrive as a 200, so readData checks the envelope, not just the HTTP status.
+  return readData<RegisterResult>(res);
 }
 
 // POST /api/fest/pass/{token}/claim/ — claim a blank pass in place.
@@ -217,9 +235,7 @@ export async function claimPass(
     `${FEST_API_BASE}/pass/${token}/claim/`,
     buildRegisterInit(payload),
   );
-  if (!res.ok) throw new Error(await readError(res));
-  const json = (await res.json()) as { data: FestPassDetail };
-  return json.data;
+  return readData<FestPassDetail>(res);
 }
 
 export type FestPass = { code: string; status: string; s3_url?: string };
@@ -252,9 +268,7 @@ export async function lookupPayment(
     `${FEST_API_BASE}/${slug}/payment/lookup/?phone=${encodeURIComponent(phone)}`,
     { headers: { Accept: "application/json" }, cache: "no-store" },
   );
-  if (!res.ok) throw new Error(await readError(res));
-  const json = (await res.json()) as { data: PaymentLookup };
-  return json.data;
+  return readData<PaymentLookup>(res);
 }
 
 // POST /api/fest/{slug}/payment/retry/ — mint a fresh order (or return the
@@ -268,9 +282,7 @@ export async function retryPayment(
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ phone }),
   });
-  if (!res.ok) throw new Error(await readError(res));
-  const json = (await res.json()) as { data: PaymentRetryResult };
-  return json.data;
+  return readData<PaymentRetryResult>(res);
 }
 
 // GET /api/fest/pass/{token}/ — resolve a scanned QR (drives /p/<token>).
@@ -280,7 +292,5 @@ export async function resolvePass(token: string): Promise<PassResolution> {
     headers: { Accept: "application/json" },
     cache: "no-store",
   });
-  if (!res.ok) throw new Error(await readError(res));
-  const json = (await res.json()) as { data: PassResolution };
-  return json.data;
+  return readData<PassResolution>(res);
 }
