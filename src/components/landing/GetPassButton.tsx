@@ -10,6 +10,7 @@ import {
   type FestEventInfo,
   type RegisterSuccess,
 } from "@/lib/festApi";
+import { rememberBuyer } from "@/lib/dataLayer";
 import { Field, SelectField, FileField, submitCls, TicketCard } from "./form";
 
 type Slug = string;
@@ -117,6 +118,13 @@ export default function GetPassButton({
         extra: {},
       });
       if (result.requires_payment) {
+        // Carry the buyer's details across the gateway redirect so the
+        // payment-success page can attach them to the GA4 purchase event.
+        rememberBuyer({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+        });
         // Hand off to the payment gateway.
         window.location.href = result.payment_url;
         return;

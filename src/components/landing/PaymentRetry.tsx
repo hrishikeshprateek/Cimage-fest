@@ -9,6 +9,7 @@ import {
   type PaymentLookup,
   type FestPass,
 } from "@/lib/festApi";
+import { rememberBuyer } from "@/lib/dataLayer";
 import { inputCls, labelCls, submitCls, TicketCard } from "./form";
 
 type View =
@@ -59,6 +60,12 @@ export default function PaymentRetry({ slug = fest.passSlug }: { slug?: string }
       if (result.paid) {
         setView({ kind: "pass", pass: result.pass });
       } else {
+        // Carry what we know (phone, and a name if a status lookup ran) across
+        // the gateway redirect for the purchase event on the success page.
+        rememberBuyer({
+          phone: cleanPhone,
+          name: view.kind === "status" ? view.data.name ?? undefined : undefined,
+        });
         // Fresh order → hand off to the gateway.
         window.location.href = result.payment_url;
       }

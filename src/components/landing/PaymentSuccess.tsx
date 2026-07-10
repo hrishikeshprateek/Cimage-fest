@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { resolvePass, type PassResolution } from "@/lib/festApi";
+import { pushPurchase, recallBuyer, forgetBuyer } from "@/lib/dataLayer";
 import { submitCls, TicketCard } from "./form";
 
 type State =
@@ -47,6 +48,28 @@ export default function PaymentSuccess({
     fetchPass();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [passCode]);
+
+  // Once the pass resolves, push the GA4 `purchase` event to the dataLayer.
+  // Amount, currency and name come from the backend (via resolvePass), not the
+  // URL; pushPurchase itself fires only once per transaction_id.
+  useEffect(() => {
+    if (state.kind !== "resolved" || !txn) return;
+    const { event: ev, pass } = state.data;
+    // Buyer details typed at registration, carried across the gateway redirect.
+    const buyer = recallBuyer();
+    pushPurchase({
+      transactionId: txn,
+      value: Number(ev.amount) || 0,
+      currency: ev.currency || "INR",
+      eventName: ev.name,
+      eventSlug: ev.slug,
+      customerName: pass.registration_name || buyer?.name || null,
+      email: buyer?.email || null,
+      phone: buyer?.phone || null,
+      customerType: "new",
+    });
+    forgetBuyer(); // don't leave PII in storage once the event has fired
+  }, [state, txn]);
 
   const SuccessPill = (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-emerald-300">
