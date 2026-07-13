@@ -11,26 +11,39 @@ export default function Loader() {
   const [done, setDone] = useState(false);
   const [gone, setGone] = useState(false);
 
-  // Simulated load — ease toward 100, then trigger the exit curtain.
+  // Driven by the real page load — no fixed/simulated delay. The arc eases
+  // toward 90% while resources are still loading, then snaps to 100 and exits
+  // the moment the page is ready (instant on a cached/fast load).
   useEffect(() => {
     let raf = 0;
-    const start = performance.now();
-    const duration = 2200;
+    let finished = false;
 
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / duration);
-      // easeInOutCubic for a weighty feel
-      const eased =
-        t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-      setProgress(Math.round(eased * 100));
-      if (t < 1) {
-        raf = requestAnimationFrame(tick);
-      } else {
-        setTimeout(() => setDone(true), 250);
-      }
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      setProgress(100);
+      setDone(true);
+    };
+
+    const tick = () => {
+      if (finished) return;
+      setProgress((p) => Math.round(p + (90 - p) * 0.08));
+      raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+
+    // Ready as soon as the DOM is parsed — don't block on every image/video.
+    // This effect runs after hydration, so this is effectively immediate on a
+    // normal load and simply waits out a genuinely slow first paint otherwise.
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", finish, { once: true });
+    } else {
+      finish();
+    }
+    return () => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener("DOMContentLoaded", finish);
+    };
   }, []);
 
   // Fully unmount after the fade-out transition.
