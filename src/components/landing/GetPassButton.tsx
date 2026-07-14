@@ -59,10 +59,10 @@ export default function GetPassButton({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Single-select: picking a day replaces the previous one; clicking the
+  // selected day again clears it.
   const toggleSlot = (id: string) =>
-    setSlotIds((ids) =>
-      ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id],
-    );
+    setSlotIds((ids) => (ids[0] === id ? [] : [id]));
 
   // Close on Escape and lock scroll while the popup is open.
   useEffect(() => {

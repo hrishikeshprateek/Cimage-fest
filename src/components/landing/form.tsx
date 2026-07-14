@@ -243,7 +243,7 @@ function formatSlotDate(iso: string): string {
 // Multi-select of an event's day/time slots. Renders every slot; the ones that
 // aren't selectable (closed or full) are shown greyed and disabled.
 export function DateSlotField({
-  label = "Choose your day(s)",
+  label = "Choose your day",
   slots,
   selected,
   onToggle,
@@ -267,7 +267,7 @@ export function DateSlotField({
           </span>
         )}
       </span>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={label}>
         {ordered.map((s) => {
           const on = selected.includes(s.id);
           const disabled = !s.selectable;
@@ -276,8 +276,9 @@ export function DateSlotField({
             <button
               key={s.id}
               type="button"
+              role="radio"
               disabled={disabled}
-              aria-pressed={on}
+              aria-checked={on}
               onClick={() => onToggle(s.id)}
               className={[
                 "flex flex-col items-start gap-0.5 rounded-lg border px-3 py-2.5 text-left transition",
