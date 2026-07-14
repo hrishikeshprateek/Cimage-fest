@@ -11,7 +11,14 @@ import {
   type RegisterSuccess,
 } from "@/lib/festApi";
 import { rememberBuyer } from "@/lib/dataLayer";
-import { Field, SelectField, FileField, submitCls, TicketCard } from "./form";
+import {
+  Field,
+  SelectField,
+  FileField,
+  DateSlotField,
+  submitCls,
+  TicketCard,
+} from "./form";
 
 type Slug = string;
 
@@ -48,8 +55,14 @@ export default function GetPassButton({
   const [phase, setPhase] = useState<Phase>({ kind: "loading" });
   const [form, setForm] = useState(EMPTY_FORM);
   const [idCard, setIdCard] = useState<File | null>(null);
+  const [slotIds, setSlotIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const toggleSlot = (id: string) =>
+    setSlotIds((ids) =>
+      ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id],
+    );
 
   // Close on Escape and lock scroll while the popup is open.
   useEffect(() => {
@@ -89,6 +102,7 @@ export default function GetPassButton({
     setPhase({ kind: "loading" });
     setForm(EMPTY_FORM);
     setIdCard(null);
+    setSlotIds([]);
     setError(null);
     setOpen(true);
   };
@@ -103,6 +117,12 @@ export default function GetPassButton({
       setError("Name and phone are required.");
       return;
     }
+    // Require a day when the event has open slots to choose from.
+    const openSlots = (phase.event.date_slots ?? []).filter((s) => s.selectable);
+    if (openSlots.length && slotIds.length === 0) {
+      setError("Please select at least one date to attend.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -115,6 +135,7 @@ export default function GetPassButton({
         school_name: form.school_name.trim() || undefined,
         city: form.city.trim() || undefined,
         id_card: idCard,
+        date_slots: slotIds.length ? slotIds : undefined,
         extra: {},
       });
       if (result.requires_payment) {
@@ -142,6 +163,7 @@ export default function GetPassButton({
     // Reset for next time once the fade is out of view.
     setForm(EMPTY_FORM);
     setIdCard(null);
+    setSlotIds([]);
     setError(null);
   };
 
@@ -239,6 +261,14 @@ export default function GetPassButton({
                     </div>
                   </div>
                   <Field label="School / College" value={form.school_name} onChange={setField("school_name")} />
+
+                  {!!phase.event.date_slots?.length && (
+                    <DateSlotField
+                      slots={phase.event.date_slots}
+                      selected={slotIds}
+                      onToggle={toggleSlot}
+                    />
+                  )}
 
                   <FileField
                     label="ID Card"

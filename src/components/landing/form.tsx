@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
+import type { EventDateSlot } from "@/lib/festApi";
 
 // Shared form styling used across the pass / registration UIs.
 export const inputCls =
@@ -224,5 +225,83 @@ export function FileField({
         />
       </div>
     </label>
+  );
+}
+
+// Format an ISO date ("2026-07-26") as "Sat, 26 Jul" without timezone drift.
+function formatSlotDate(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y || !m || !d) return iso;
+  const dt = new Date(y, m - 1, d);
+  return dt.toLocaleDateString("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+}
+
+// Multi-select of an event's day/time slots. Renders every slot; the ones that
+// aren't selectable (closed or full) are shown greyed and disabled.
+export function DateSlotField({
+  label = "Choose your day(s)",
+  slots,
+  selected,
+  onToggle,
+}: {
+  label?: string;
+  slots: EventDateSlot[];
+  selected: string[];
+  onToggle: (id: string) => void;
+}) {
+  const anySelectable = slots.some((s) => s.selectable);
+  const ordered = [...slots].sort((a, b) => a.order - b.order);
+  return (
+    <div className="block">
+      <span className={labelCls}>
+        {label}
+        {anySelectable ? (
+          <Req />
+        ) : (
+          <span className="ml-1 tracking-normal text-white/30 lowercase">
+            (none open)
+          </span>
+        )}
+      </span>
+      <div className="grid grid-cols-2 gap-2">
+        {ordered.map((s) => {
+          const on = selected.includes(s.id);
+          const disabled = !s.selectable;
+          const tag = disabled ? (s.is_full ? "Full" : "Closed") : null;
+          return (
+            <button
+              key={s.id}
+              type="button"
+              disabled={disabled}
+              aria-pressed={on}
+              onClick={() => onToggle(s.id)}
+              className={[
+                "flex flex-col items-start gap-0.5 rounded-lg border px-3 py-2.5 text-left transition",
+                disabled
+                  ? "cursor-not-allowed border-white/10 bg-white/[0.02] opacity-50"
+                  : on
+                    ? "border-indigo-400/70 bg-indigo-400/15 text-white"
+                    : "border-white/15 bg-white/[0.05] text-white/80 hover:border-white/30",
+              ].join(" ")}
+            >
+              <span className="text-sm font-semibold">
+                {formatSlotDate(s.date)}
+              </span>
+              {(s.label || tag) && (
+                <span className="text-[11px] text-white/50">
+                  {s.label}
+                  {s.label && tag ? " · " : ""}
+                  {tag}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }

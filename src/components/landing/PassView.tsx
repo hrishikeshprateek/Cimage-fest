@@ -9,7 +9,14 @@ import {
   type PassResolution,
   type FestPassDetail,
 } from "@/lib/festApi";
-import { Field, SelectField, FileField, submitCls, TicketCard } from "./form";
+import {
+  Field,
+  SelectField,
+  FileField,
+  DateSlotField,
+  submitCls,
+  TicketCard,
+} from "./form";
 
 type State =
   | { kind: "loading" }
@@ -72,8 +79,14 @@ export default function PassView({
   const [state, setState] = useState<State>({ kind: "loading" });
   const [form, setForm] = useState(EMPTY_FORM);
   const [idCard, setIdCard] = useState<File | null>(null);
+  const [slotIds, setSlotIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const toggleSlot = (id: string) =>
+    setSlotIds((ids) =>
+      ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id],
+    );
 
   const fetchPass = () =>
     resolvePass(token)
@@ -106,6 +119,14 @@ export default function PassView({
       setError("Name and phone are required.");
       return;
     }
+    // Require a day when the event has open slots to choose from.
+    const openSlots = (state.data.event.date_slots ?? []).filter(
+      (s) => s.selectable,
+    );
+    if (openSlots.length && slotIds.length === 0) {
+      setError("Please select at least one date to attend.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -118,6 +139,7 @@ export default function PassView({
         school_name: form.school_name.trim() || undefined,
         city: form.city.trim() || undefined,
         id_card: idCard,
+        date_slots: slotIds.length ? slotIds : undefined,
         extra: {},
       });
       setState({
@@ -200,6 +222,14 @@ export default function PassView({
             <Field label="City" value={form.city} onChange={setField("city")} />
           </div>
           <Field label="School / College" value={form.school_name} onChange={setField("school_name")} />
+
+          {!!state.data.event.date_slots?.length && (
+            <DateSlotField
+              slots={state.data.event.date_slots}
+              selected={slotIds}
+              onToggle={toggleSlot}
+            />
+          )}
 
           <FileField
             label="ID Card"

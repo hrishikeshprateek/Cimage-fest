@@ -5,6 +5,20 @@ export const FEST_API_BASE =
   process.env.NEXT_PUBLIC_FEST_API_BASE ??
   "https://backend-admission.cimagepatna.com/api/fest";
 
+// A selectable day/time slot for an event. Omitted/empty when the event has no
+// slots configured — in which case registration works exactly as before.
+export type EventDateSlot = {
+  id: string;
+  date: string; // ISO date, e.g. "2026-07-26"
+  label: string; // e.g. "Day 1 — Cultural" (may be "")
+  is_open: boolean;
+  is_full: boolean; // registration_count >= capacity
+  selectable: boolean; // open && not full — the only ones a user may pick
+  capacity: number; // 0 = unlimited
+  registration_count: number;
+  order: number;
+};
+
 export type FestEventInfo = {
   slug: string;
   name: string;
@@ -16,6 +30,7 @@ export type FestEventInfo = {
   amount: number | string;
   currency: string;
   is_active: boolean;
+  date_slots?: EventDateSlot[]; // present when the event has day/time slots
 };
 
 // Full public pass shape (PublicPassSerializer).
@@ -48,6 +63,7 @@ export type RegisterPayload = {
   school_name?: string;
   city?: string;
   id_card?: File | null; // jpg/png/pdf — triggers a multipart upload to S3
+  date_slots?: string[]; // chosen EventDateSlot ids (multi-select), when any
   extra?: Record<string, unknown>; // future-proofing; no backend change needed
 };
 
@@ -190,10 +206,13 @@ function buildRegisterInit(payload: RegisterPayload): RequestInit {
   if (payload.school_name) fields.school_name = payload.school_name;
   if (payload.city) fields.city = payload.city;
   const hasExtra = payload.extra && Object.keys(payload.extra).length > 0;
+  const dateSlots = payload.date_slots ?? [];
 
   if (payload.id_card instanceof File) {
     const fd = new FormData();
     Object.entries(fields).forEach(([k, v]) => fd.append(k, v));
+    // Repeat the key so DRF reads it as a list for the M2M field.
+    dateSlots.forEach((id) => fd.append("date_slots", id));
     if (hasExtra) fd.append("extra", JSON.stringify(payload.extra));
     fd.append("id_card", payload.id_card);
     // No Content-Type header — the browser sets the multipart boundary.
@@ -201,6 +220,7 @@ function buildRegisterInit(payload: RegisterPayload): RequestInit {
   }
 
   const body: Record<string, unknown> = { ...fields };
+  if (dateSlots.length) body.date_slots = dateSlots;
   if (hasExtra) body.extra = payload.extra;
   return {
     method: "POST",
