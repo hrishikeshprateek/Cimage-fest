@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import SideNav from "@/components/landing/SideNav";
+import UtmCapture from "@/components/landing/UtmCapture";
 
 // Google Tag Manager container + Google Ads (gtag.js). Same IDs as the main
 // CIMAGE site. GTM_ID drives both the head loader and the <body> noscript.
@@ -76,6 +77,9 @@ export default function RootLayout({
         <Script id="gtag-ads-init" strategy="beforeInteractive">
           {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GOOGLE_ADS_ID}');`}
         </Script>
+
+        {/* Capture UTM params from the landing URL for registration attribution */}
+        <UtmCapture />
 
         {children}
         {/* Global left rail (desktop) / bottom nav (mobile) — present on every route */}

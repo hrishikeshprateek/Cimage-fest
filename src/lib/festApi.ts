@@ -1,6 +1,8 @@
 // Fest website API client — site: fest.cimage.in (QR target /p/<token>)
 // Base + endpoints per the fest backend. No auth required.
 
+import type { UtmParams } from "@/lib/utm";
+
 export const FEST_API_BASE =
   process.env.NEXT_PUBLIC_FEST_API_BASE ??
   "https://backend-admission.cimagepatna.com/api/fest";
@@ -54,6 +56,14 @@ export const BOARD_OPTIONS = [
   { value: "other", label: "Other" },
 ] as const;
 
+// College code dropdown — the backend validates against these exact codes.
+export const COLLEGE_OPTIONS = [
+  { value: "452", label: "452" },
+  { value: "310", label: "310" },
+  { value: "445", label: "445" },
+  { value: "711", label: "711" },
+] as const;
+
 export type RegisterPayload = {
   name: string; // required
   phone: string; // required (10 digits)
@@ -64,6 +74,9 @@ export type RegisterPayload = {
   city?: string;
   id_card?: File | null; // jpg/png/pdf — triggers a multipart upload to S3
   date_slots?: string[]; // chosen EventDateSlot ids (multi-select), when any
+  college_code?: string; // one of COLLEGE_OPTIONS values
+  student_id?: string; // numeric, up to 5 digits
+  utm?: UtmParams; // campaign attribution captured from the landing URL
   extra?: Record<string, unknown>; // future-proofing; no backend change needed
 };
 
@@ -205,6 +218,12 @@ function buildRegisterInit(payload: RegisterPayload): RequestInit {
   if (payload.course) fields.preferred_course = payload.course;
   if (payload.school_name) fields.school_name = payload.school_name;
   if (payload.city) fields.city = payload.city;
+  if (payload.college_code) fields.college_code = payload.college_code;
+  if (payload.student_id) fields.student_id = payload.student_id;
+  // UTM attribution — flat utm_* keys, only the ones we actually captured.
+  for (const [k, v] of Object.entries(payload.utm ?? {})) {
+    if (v) fields[k] = v;
+  }
   const hasExtra = payload.extra && Object.keys(payload.extra).length > 0;
   const dateSlots = payload.date_slots ?? [];
 

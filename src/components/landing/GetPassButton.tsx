@@ -5,12 +5,14 @@ import { createPortal } from "react-dom";
 import { fest } from "@/lib/data";
 import {
   BOARD_OPTIONS,
+  COLLEGE_OPTIONS,
   getFestEvent,
   registerForFest,
   type FestEventInfo,
   type RegisterSuccess,
 } from "@/lib/festApi";
 import { rememberBuyer } from "@/lib/dataLayer";
+import { getUtm } from "@/lib/utm";
 import {
   Field,
   SelectField,
@@ -38,6 +40,8 @@ const EMPTY_FORM = {
   course: "",
   school_name: "",
   city: "",
+  college_code: "",
+  student_id: "",
 };
 
 const DEFAULT_TRIGGER_CLS = "btn-tech btn-tech-primary shrink-0";
@@ -134,8 +138,11 @@ export default function GetPassButton({
         course: form.course.trim() || undefined,
         school_name: form.school_name.trim() || undefined,
         city: form.city.trim() || undefined,
+        college_code: form.college_code || undefined,
+        student_id: form.student_id.trim() || undefined,
         id_card: idCard,
         date_slots: slotIds.length ? slotIds : undefined,
+        utm: getUtm(),
         extra: {},
       });
       if (result.requires_payment) {
@@ -277,6 +284,36 @@ export default function GetPassButton({
                     file={idCard}
                     onFile={setIdCard}
                   />
+
+                  {/* Referral — optional */}
+                  <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3.5">
+                    <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.13em] text-white/45">
+                      Referral{" "}
+                      <span className="tracking-normal lowercase text-white/30">
+                        (optional)
+                      </span>
+                    </p>
+                    <div className="flex gap-3">
+                      <div className="flex-1">
+                        <SelectField label="College" value={form.college_code} onChange={setField("college_code")}>
+                          <option value="" className="bg-[#0e0a1a]">Select college</option>
+                          {COLLEGE_OPTIONS.map((c) => (
+                            <option key={c.value} value={c.value} className="bg-[#0e0a1a]">
+                              {c.label}
+                            </option>
+                          ))}
+                        </SelectField>
+                      </div>
+                      <div className="flex-1">
+                        <Field
+                          label="Student ID"
+                          value={form.student_id}
+                          onChange={(v) => setForm((f) => ({ ...f, student_id: v.replace(/\D/g, "").slice(0, 5) }))}
+                          inputMode="numeric"
+                        />
+                      </div>
+                    </div>
+                  </div>
 
                   {error && (
                     <p className="rounded-md border border-rose-500/25 bg-rose-500/10 px-3 py-2 text-xs font-medium text-rose-300">
