@@ -9,6 +9,8 @@ import UtmCapture from "@/components/landing/UtmCapture";
 // CIMAGE site. GTM_ID drives both the head loader and the <body> noscript.
 const GTM_ID = "GTM-WCHC69L6";
 const GOOGLE_ADS_ID = "AW-10885034048";
+// Microsoft Clarity project (session recording / heatmaps).
+const CLARITY_ID = "xnadpjcpiy";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -76,6 +78,11 @@ export default function RootLayout({
         />
         <Script id="gtag-ads-init" strategy="beforeInteractive">
           {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GOOGLE_ADS_ID}');`}
+        </Script>
+
+        {/* Microsoft Clarity */}
+        <Script id="ms-clarity" strategy="beforeInteractive">
+          {`(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, document, "clarity", "script", "${CLARITY_ID}");`}
         </Script>
 
         {/* Capture UTM params from the landing URL for registration attribution */}
