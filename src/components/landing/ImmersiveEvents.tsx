@@ -7,6 +7,7 @@ import { getFestActivities, type FestActivity } from "@/lib/festApi";
 import GetPassButton from "./GetPassButton";
 import ContactButton from "./ContactButton";
 import OrbitStage from "./OrbitStage";
+import EventReels from "./EventReels";
 
 type Filter = Track | "all";
 
@@ -181,7 +182,10 @@ export default function ImmersiveEvents() {
     );
   }
 
-  const total = events.length + 2; // intro + events + outro
+  // intro + reels + events + outro. The reels wall sits at index 1, so each
+  // event panel is offset by 2.
+  const total = events.length + 3;
+  const EVENT_OFFSET = 2;
   const activeTrack = TRACKS.find((t) => t.key === filter);
 
   return (
@@ -264,9 +268,20 @@ export default function ImmersiveEvents() {
           )}
         </section>
 
+        {/* Reels wall — full-screen, sits between the intro and the line-up */}
+        <section
+          data-index={1}
+          ref={(el) => {
+            panels.current[1] = el;
+          }}
+          className="relative h-dvh snap-start overflow-hidden"
+        >
+          <EventReels />
+        </section>
+
         {/* Event panels */}
         {events.map((event, i) => {
-          const index = i + 1;
+          const index = i + EVENT_OFFSET;
           const isActive = active === index;
           const accent = accentOf(i);
           const hasImage = !!event.background_image_url;
@@ -444,10 +459,12 @@ export default function ImmersiveEvents() {
       {/* Progress rail (desktop) */}
       <div className="fixed right-6 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-center gap-3 md:flex">
         <span className="mb-1 font-mono text-[10px] tabular-nums tracking-widest text-white/50">
-          {String(Math.min(active, events.length)).padStart(2, "0")}
+          {String(
+            Math.min(Math.max(active - EVENT_OFFSET + 1, 0), events.length),
+          ).padStart(2, "0")}
         </span>
         {events.map((event, i) => {
-          const index = i + 1;
+          const index = i + EVENT_OFFSET;
           return (
             <button
               key={event.id}

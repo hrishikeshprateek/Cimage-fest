@@ -9,6 +9,10 @@ export const fest = {
   // Backend slug used by the "Get Pass" registration dialog
   // (GET/POST /api/fest/{passSlug}/…). Override via NEXT_PUBLIC_FEST_PASS_SLUG.
   passSlug: process.env.NEXT_PUBLIC_FEST_PASS_SLUG ?? "weekend-fest",
+  // Non-CIMAGE ("outside") students register against their own event, which
+  // carries its own fee. Same form — only the slug differs.
+  outsiderPassSlug:
+    process.env.NEXT_PUBLIC_FEST_OUTSIDER_SLUG ?? "weekend-fest-outsider",
 };
 
 // Admission / helpdesk numbers shown in the Contact popup.

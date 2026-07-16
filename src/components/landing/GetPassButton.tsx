@@ -25,10 +25,26 @@ import {
 type Slug = string;
 
 type Phase =
+  | { kind: "choose" } // pick CIMAGE vs outside student (main pass only)
   | { kind: "loading" }
   | { kind: "closed" } // event inactive / not found
   | { kind: "form"; event: FestEventInfo }
   | { kind: "done"; pass: RegisterSuccess["pass"] };
+
+// Who's registering — each option is just a different backend event (and so a
+// different fee). The form itself is identical for both.
+const AUDIENCES = [
+  {
+    slug: fest.passSlug,
+    title: "2025, 2026 or 2027 Batch",
+    desc: "Passed out in one of these batches",
+  },
+  {
+    slug: fest.outsiderPassSlug,
+    title: "Any Other Participant",
+    desc: "Everyone else",
+  },
+];
 
 const COURSE_OPTIONS = ["BCA", "BBA", "BCom(P)", "MCA", "MBA", "BTech", "BSC"];
 
@@ -62,6 +78,17 @@ export default function GetPassButton({
   const [slotIds, setSlotIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Which event we're actually registering against. Null while the audience
+  // chooser is up; otherwise the slug we fetch + submit to.
+  const [chosenSlug, setChosenSlug] = useState<string | null>(null);
+  const [audienceInfo, setAudienceInfo] = useState<
+    Record<string, FestEventInfo | null>
+  >({});
+
+  // Only the main fest pass offers the CIMAGE/outside choice — activity-specific
+  // buttons (which pass their own slug) go straight to their form as before.
+  const showChooser = slug === fest.passSlug;
+  const activeSlug = chosenSlug ?? slug;
 
   // Single-select: picking a day replaces the previous one; clicking the
   // selected day again clears it.
@@ -80,12 +107,12 @@ export default function GetPassButton({
     };
   }, [open]);
 
-  // Fetch the event each time the dialog opens. The "loading" reset happens in
-  // the open handler so we don't setState synchronously inside the effect.
+  // Fetch the chosen event. The "loading" reset happens in the open/choose
+  // handlers so we don't setState synchronously inside the effect.
   useEffect(() => {
-    if (!open) return;
+    if (!open || !chosenSlug) return;
     let cancelled = false;
-    getFestEvent(slug)
+    getFestEvent(chosenSlug)
       .then((event) => {
         if (cancelled) return;
         setPhase(
@@ -100,15 +127,49 @@ export default function GetPassButton({
     return () => {
       cancelled = true;
     };
-  }, [open, slug]);
+  }, [open, chosenSlug]);
+
+  // While the chooser is up, pull both events so each option can show its fee.
+  useEffect(() => {
+    if (!open || !showChooser) return;
+    let cancelled = false;
+    AUDIENCES.forEach((a) => {
+      getFestEvent(a.slug)
+        .then((event) => {
+          if (!cancelled) {
+            setAudienceInfo((m) => ({ ...m, [a.slug]: event }));
+          }
+        })
+        .catch(() => {
+          // fee just won't show for that option
+        });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, showChooser]);
 
   const openDialog = () => {
-    setPhase({ kind: "loading" });
+    // Main pass → ask who's registering first; activity buttons → straight in.
+    setChosenSlug(showChooser ? null : slug);
+    setPhase(showChooser ? { kind: "choose" } : { kind: "loading" });
     setForm(EMPTY_FORM);
     setIdCard(null);
     setSlotIds([]);
     setError(null);
     setOpen(true);
+  };
+
+  const chooseAudience = (s: string) => {
+    setChosenSlug(s);
+    setPhase({ kind: "loading" });
+  };
+
+  const backToChooser = () => {
+    setChosenSlug(null);
+    setSlotIds([]);
+    setError(null);
+    setPhase({ kind: "choose" });
   };
 
   const setField = (k: keyof typeof EMPTY_FORM) => (v: string) =>
@@ -130,7 +191,7 @@ export default function GetPassButton({
     setSubmitting(true);
     setError(null);
     try {
-      const result = await registerForFest(slug, {
+      const result = await registerForFest(activeSlug, {
         name: form.name.trim(),
         phone: form.phone.trim(),
         email: form.email.trim() || undefined,
@@ -171,6 +232,7 @@ export default function GetPassButton({
     setForm(EMPTY_FORM);
     setIdCard(null);
     setSlotIds([]);
+    setChosenSlug(null);
     setError(null);
   };
 
@@ -196,6 +258,46 @@ export default function GetPassButton({
           />
 
           <div className="animate-rise relative my-auto">
+            {phase.kind === "choose" && (
+              <TicketCard onClose={close} title="Who's Registering?">
+                <p className="text-center text-sm leading-relaxed text-white/65">
+                  Pick the one that applies to you — each has its own pass.
+                </p>
+                <div className="mt-5 space-y-3">
+                  {AUDIENCES.map((a) => {
+                    const info = audienceInfo[a.slug];
+                    return (
+                      <button
+                        key={a.slug}
+                        type="button"
+                        onClick={() => chooseAudience(a.slug)}
+                        className="flex w-full items-center justify-between gap-3 rounded-lg border border-white/15 bg-white/[0.05] px-4 py-3.5 text-left transition hover:border-indigo-400/70 hover:bg-white/[0.09]"
+                      >
+                        <span className="min-w-0">
+                          <span className="block text-sm font-semibold text-white">
+                            {a.title}
+                          </span>
+                          <span className="block text-xs text-white/50">
+                            {a.desc}
+                          </span>
+                        </span>
+                        <span className="flex shrink-0 items-center gap-2">
+                          {info?.requires_payment && (
+                            <span className="font-mono text-sm font-bold text-white">
+                              ₹{info.amount}
+                            </span>
+                          )}
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/40">
+                            <path d="M5 12h14M13 6l6 6-6 6" />
+                          </svg>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </TicketCard>
+            )}
+
             {phase.kind === "loading" && (
               <TicketCard onClose={close} title="Loading…">
                 <p className="text-center text-sm text-white/60">
@@ -329,6 +431,16 @@ export default function GetPassButton({
                         : "Get My Pass"}
                   </button>
                 </form>
+
+                {showChooser && (
+                  <button
+                    type="button"
+                    onClick={backToChooser}
+                    className="mt-3 block w-full text-center text-xs font-medium text-white/45 transition-colors hover:text-cyan"
+                  >
+                    ← Not you? Change
+                  </button>
+                )}
 
                 {phase.event.requires_payment && (
                   <a
