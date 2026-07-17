@@ -228,7 +228,7 @@ export default function PassView({
             <Field label="Course" value={form.course} onChange={setField("course")} />
             <Field label="City" value={form.city} onChange={setField("city")} />
           </div>
-          <Field label="School / College" value={form.school_name} onChange={setField("school_name")} />
+          <Field label="School / College / Institute" value={form.school_name} onChange={setField("school_name")} />
 
           {!!state.data.event.date_slots?.length && (
             <DateSlotField
@@ -249,9 +249,9 @@ export default function PassView({
 
           {/* Referral — optional */}
           <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3.5">
-            <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.13em] text-white/45">
+            <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.13em] text-white/70">
               Referral{" "}
-              <span className="tracking-normal lowercase text-white/30">
+              <span className="tracking-normal lowercase text-white/45">
                 (optional)
               </span>
             </p>
