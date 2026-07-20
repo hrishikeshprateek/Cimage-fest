@@ -49,7 +49,7 @@ export function TicketCard({
       <div className="flex flex-col items-center rounded-t-2xl bg-white/[0.06] px-7 pb-6 pt-8 text-center">
         <div className="h-16 w-16 overflow-hidden rounded-full ring-1 ring-white/15 shadow-lg">
           <Image
-            src="/fest-logo.png"
+            src="/fest-logo.webp"
             alt="CIMAGE Weekend Fest"
             width={128}
             height={128}

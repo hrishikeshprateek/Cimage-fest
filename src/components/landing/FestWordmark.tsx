@@ -10,7 +10,7 @@ export default function FestWordmark() {
         <div className="pointer-events-none absolute -inset-6 animate-glow rounded-full bg-violet-600/25 blur-3xl" />
         <div className="relative h-48 w-48 animate-breathe overflow-hidden rounded-full shadow-[0_0_40px_8px_rgba(139,92,246,0.5)] ring-1 ring-white/15 sm:h-60 sm:w-60">
           <Image
-            src="/fest-logo.png"
+            src="/fest-logo.webp"
             alt="CIMAGE Weekend Fest"
             width={640}
             height={640}

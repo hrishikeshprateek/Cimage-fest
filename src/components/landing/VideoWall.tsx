@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 
 // Your fest intro lives at public/hero.mp4.
 const SRC_MP4 = "/hero.mp4";
-const SRC_WEBM = "/hero.webm";
+// First-frame still shown instantly while the mp4 buffers (helps LCP).
+const POSTER = "/hero-poster.webp";
 
 // 5 panels max; visibility trims the count down on smaller screens so each
 // column stays roughly portrait-shaped.
@@ -92,9 +93,11 @@ export default function VideoWall() {
               muted
               loop
               playsInline
-              preload="auto"
+              poster={POSTER}
+              // Only the primary panel eagerly buffers; the rest fetch metadata
+              // so five panels don't pull the full mp4 at once and stall LCP.
+              preload={i === 0 ? "auto" : "metadata"}
             >
-              <source src={SRC_WEBM} type="video/webm" />
               <source src={SRC_MP4} type="video/mp4" />
             </video>
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#05010f]/40" />

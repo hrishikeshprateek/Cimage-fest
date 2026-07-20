@@ -142,7 +142,7 @@ export default function Loader() {
         {/* Fest logo — circular clip removes the square background, gentle breathing pulse */}
         <div className="absolute h-32 w-32 animate-breathe overflow-hidden rounded-full shadow-[0_0_28px_6px_rgba(139,92,246,0.55)] ring-1 ring-white/10">
           <Image
-            src="/fest-logo.png"
+            src="/fest-logo.webp"
             alt="CIMAGE Weekend Fest"
             width={512}
             height={512}
