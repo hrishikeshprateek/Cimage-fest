@@ -20,23 +20,69 @@ const PANELS = [
 export default function VideoWall() {
   const refs = useRef<(HTMLVideoElement | null)[]>([]);
   const [soundOn, setSoundOn] = useState(true); // on by default
+  // How many panels actually get a <video>. Even sharing one download, five
+  // simultaneous decoders are heavy on phones, so we cap the count at the
+  // breakpoint. Default 2 (mobile) so SSR matches and phones stay light.
+  const [videoCount, setVideoCount] = useState(2);
+  // The clip is identical in every panel, so fetch it ONCE and hand every
+  // <video> the same in-memory Blob URL — one network download total, instead
+  // of one per panel. Poster covers the panels until the blob is ready.
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const compute = () =>
+      window.matchMedia("(min-width: 1024px)").matches
+        ? 5
+        : window.matchMedia("(min-width: 640px)").matches
+          ? 3
+          : 2;
+    const apply = () => setVideoCount(compute());
+    apply();
+    window.addEventListener("resize", apply);
+    return () => window.removeEventListener("resize", apply);
+  }, []);
+
+  useEffect(() => {
+    let url: string | null = null;
+    let cancelled = false;
+    fetch(SRC_MP4)
+      .then((r) => r.blob())
+      .then((blob) => {
+        if (cancelled) return;
+        url = URL.createObjectURL(blob);
+        setBlobUrl(url);
+      })
+      // Network hiccup → fall back to the direct URL (each video loads its own).
+      .catch(() => {
+        if (!cancelled) setBlobUrl(SRC_MP4);
+      });
+    return () => {
+      cancelled = true;
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, []);
 
   // Autoplay muted (browser requirement) + stagger each panel to a different
-  // point in the clip so it reads like a wall of live screens.
+  // point in the clip so it reads like a wall of live screens. Runs once the
+  // shared blob is ready and re-runs as more panels mount on wider screens;
+  // each video is only initialised once.
   useEffect(() => {
+    if (!blobUrl) return;
     const vids = refs.current.filter(Boolean) as HTMLVideoElement[];
     vids.forEach((v, i) => {
+      if (v.dataset.init) return;
+      v.dataset.init = "1";
       v.muted = true; // required for autoplay; panel 0 gets unmuted later
       const seek = () => {
         if (v.duration && isFinite(v.duration)) {
-          v.currentTime = (v.duration / (vids.length + 1)) * (i + 1);
+          v.currentTime = (v.duration / (videoCount + 1)) * (i + 1);
         }
         v.play().catch(() => {});
       };
       if (v.readyState >= 1) seek();
       else v.addEventListener("loadedmetadata", seek, { once: true });
     });
-  }, []);
+  }, [videoCount, blobUrl]);
 
   // Apply the sound state to panel 0 (the only panel that carries audio).
   // If the browser blocks autoplay-with-audio, fall back to muted so the wall
@@ -82,24 +128,32 @@ export default function VideoWall() {
               i > 0 ? "border-l" : ""
             } ${vis}`}
           >
-            <video
-              ref={(el) => {
-                refs.current[i] = el;
-              }}
-              // Zoomed past object-cover so the clip's corner watermarks get
-              // cropped out of each tile.
-              className="h-full w-full scale-[1.4] object-cover"
-              autoPlay
-              muted
-              loop
-              playsInline
-              poster={POSTER}
-              // Only the primary panel eagerly buffers; the rest fetch metadata
-              // so five panels don't pull the full mp4 at once and stall LCP.
-              preload={i === 0 ? "auto" : "metadata"}
-            >
-              <source src={SRC_MP4} type="video/mp4" />
-            </video>
+            {/* Poster fills every column immediately (paints the LCP); the video
+                loads over it only where it will actually be shown. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={POSTER}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full scale-[1.4] object-cover"
+            />
+            {i < videoCount && blobUrl && (
+              <video
+                ref={(el) => {
+                  refs.current[i] = el;
+                }}
+                // Zoomed past object-cover so the clip's corner watermarks get
+                // cropped out of each tile.
+                className="absolute inset-0 h-full w-full scale-[1.4] object-cover"
+                autoPlay
+                muted
+                loop
+                playsInline
+                poster={POSTER}
+                // Same shared blob for every panel → one download, not five.
+                src={blobUrl}
+              />
+            )}
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#05010f]/40" />
           </div>
         ))}
