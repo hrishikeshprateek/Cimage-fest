@@ -12,6 +12,13 @@ export default function Home() {
       id="top"
       className="relative h-dvh w-full overflow-hidden bg-[#05010f] text-white"
     >
+      {/* Preload the hero poster so it's the LCP and paints immediately. */}
+      <link
+        rel="preload"
+        as="image"
+        href="/hero-poster.webp"
+        fetchPriority="high"
+      />
       {/* Fancy neon preloader — plays once, then reveals the site */}
       <Loader />
 

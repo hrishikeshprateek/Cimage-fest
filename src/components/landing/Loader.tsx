@@ -50,7 +50,7 @@ export default function Loader() {
   useEffect(() => {
     if (!done) return;
     document.body.style.overflow = "";
-    const id = setTimeout(() => setGone(true), 900);
+    const id = setTimeout(() => setGone(true), 400);
     return () => clearTimeout(id);
   }, [done]);
 
@@ -66,7 +66,7 @@ export default function Loader() {
 
   return (
     <div
-      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#05010f] transition-all duration-700 ${
+      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#05010f] transition-all duration-300 ${
         done ? "pointer-events-none scale-105 opacity-0" : "opacity-100"
       }`}
     >
